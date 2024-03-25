@@ -5528,16 +5528,16 @@ void drawBg(){
 
 //Draws character facing right
 void drawCharacterFR(){
-    // for(int y = 0; y < 100; y++){
-    //     for(int x = 0; x < 100; x++){
-    //         int index = x + y * 100;
-    //         if(c1[index] != 0) plot_pixel(x, y, c1[index]);
-    //     }
-    // }
-    drawPic(100, 100, c1);
+    for(int y = 0; y < 100; y++){
+        for(int x = 0; x < 100; x++){
+            int index = x + y * 100;
+            if(c1[index] != 0) plot_pixel(x, y, c1[index]);
+        }
+    }
+    //drawPic(100, 100, c1);
 }
 
-void drawPic(int x_d, int y_d, unsigned short *picArray, int scaleF){
+void drawPic(int x_d, int y_d, unsigned short *picArray){
     for(int y = 0; y < y_d; y++){
         for(int x = 0; x < x_d; x++){
             int index = x + y * x_d;
