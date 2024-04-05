@@ -5044,15 +5044,36 @@ void drawTransparentPic(int x_d, int y_d, unsigned short *picArray);
 #define characterLengthY 40
 #define characterLengthX 40
 
+typedef struct{
+    int x;
+    int y;
+    int speedX;
+    int speedY;
+    int rightActive;
+    int leftActive;
+    int upActive;
+    int downActive;
+    int size;
+    int kick; //1 if player kicks, otherwise 0
+} Character;
+
 void drawCharacterFR(int *shiftx, int *shifty);
 void drawCharacterFL(int *shiftx, int *shifty);
-void player1Input(int *shiftx, int *shifty);
+void player1Input(Character *player);
+void applyPlayerSpeed(Character *player);
 void characterCollisionLogic(int *shiftx, int *shifty);
 
 void gravityEffect(int *shifty, int height);
 
 //Ball Declarations
 #define ballDiameter 40
+
+typedef struct{
+    int x;
+    int y;
+    int xVelocity;
+    int yVelocity;
+} Ball;
 
 void drawFootball(int shiftx, int shifty);
 
@@ -5337,17 +5358,19 @@ void plot_pixel(int x, int y, short int line_color)
     *one_pixel_address = line_color;
 }
 
-void player1Input(int *shiftx, int *shifty){
+//Global Byte Memory
+unsigned char byte1 = 0;
+unsigned char byte2 = 0; 
+
+void player1Input(Character *player){
     //Goal is to recognize player input and weather they are holding down the button or not
-    
     //Variables to store the data read from the PS/2 input.
     int ps2_data;
     char validRead;
 
     //The last 3 bytes read (byte1 is the most recent).
-    unsigned char byte1, byte2;
-    byte1 = 0;
-    byte2 = 0;
+    
+  
 
     //The main loop of the program, which polls the PS/2 input and
     //illuminates LEDS depending on which keys are pressed.
@@ -5366,71 +5389,104 @@ void player1Input(int *shiftx, int *shifty){
         
         int regSpeed = 10;
         int fastSpeed = 40;
-        int jump = 50;
+        int jump = 20;
 
-        //Checking if Button Held 
-       if(byte1 == byte2){ //(button hold and release looks like 0xII 0xF1 0xII if held 0xII 0xII)
-            //y-movement 
+        /* 
+        Button hold and release looks like:     0xII 0xF1 0xII 
+        if held:                                0xII 0xII 0xF1 0xII 
+         */
+
+        ///////////////////////////////////////Checking if button released
+        if(byte2 == 0xF0){
             if(byte1 == 0x1D){
-                *shifty += -jump;
+                player->speedY = 0;
+                player->upActive = 0; 
             }
             else if(byte1 == 0x1B){
-                *shifty += fastSpeed;
+                player->speedY = 0;
+                player->downActive = 0;
             }
             //x-movement
             else if(byte1 == 0x23){
-                *shiftx += fastSpeed;
+                player->speedX = 0;
+                player->rightActive = 0;
             }
             else if(byte1 == 0x1C){
-                *shiftx += -fastSpeed;
-            } 
+                player->speedX = 0;
+                player->leftActive = 0;
+            }
         }
+
+        ///////////////////////////////////////Checking if button pressed
         else{
             //y-movement 
             if(byte1 == 0x1D){
-                *shifty += -jump;
+                player->speedY = -jump;
+                player->upActive = 1;
             }
             else if(byte1 == 0x1B){
-                *shifty += regSpeed;
+                player->speedY = regSpeed;
+                player->downActive = 1;
             }
             //x-movement
             else if(byte1 == 0x23){
-                *shiftx += regSpeed;
+                player->speedX = regSpeed;
+                player->rightActive = 1;
             }
             else if(byte1 == 0x1C){
-                *shiftx += -regSpeed;
+                player->speedX = -regSpeed;
+                player->leftActive = 1;
+            }
+        }
+
+        /////////////////////////////////////////Checking if button Held
+        if(player->rightActive || player->leftActive || player->upActive || player->downActive){
+            //y-movement 
+            if(byte1 == 0x1D){
+                player->speedY = -jump;
+            }
+            else if(byte1 == 0x1B){
+                player->speedY = fastSpeed;
+            }
+            //x-movement
+            else if(byte1 == 0x23){
+                player->speedX = fastSpeed;
+            }
+            else if(byte1 == 0x1C){
+                player->speedX = -fastSpeed;
             }
         }
 
     }
+
+    applyPlayerSpeed(player); //Applying Speed to Player
 }
 
-typedef struct{
-    int x;
-    int y;
-    int size;
-    int kick; //1 if player kicks, otherwise 0
-} Character;
+void applyPlayerSpeed(Character *player){
+    player->x += player->speedX;
+    player ->y += player->speedY;
+}
 
-typedef struct{
-    int x;
-    int y;
-    int xVelocity;
-    int yVelocity;
-} Ball;
+
 
 int main(void) {
   	//audio_playback_mono(samples, samples_n);
 	audio_setup();
-    Character Player1 = {20, 170, 0, 0}; //Initialize Character 1 Start Position at Goal Post
+
+    
+    Character Player1 = {0}; 
+    //Initialize Character 1 Start Position at Goal Post
+    Player1.x = 20;
+    Player1.y = 170;
 	int currSample = 0;
     int shiftx = 0;
     int shifty = 0;
     int footballshiftx = 0;
     int footballshifty = 0;
-	volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+	
 	
     /////////////////////Vsync Setup
+    volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
 	/* set front pixel buffer to Buffer 1 */
 	*(pixel_ctrl_ptr + 1) = (int) &Buffer1; // first store the address in the  back buffer
 	/* now, swap the front/back buffers, to set the front buffer location */
@@ -5450,9 +5506,10 @@ int main(void) {
 		//audio_playback_mono2(samples, &currSample, samples_n, 10600);
 		*(LED) = currSample;
 		drawBg();
+        player1Input(&Player1);
 		drawCharacterFL(&(Player1.x), &(Player1.y)); //draws the character
         drawFootball(footballshiftx, footballshifty);
-        player1Input(&(Player1.x), &(Player1.y));
+        
         draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground
         
         if((*(KEYs) & 0b0001) == 0b0001){
