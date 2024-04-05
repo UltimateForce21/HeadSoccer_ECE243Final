@@ -5395,6 +5395,22 @@ void player1Input(Character *player){
         Button hold and release looks like:     0xII 0xF1 0xII 
         if held:                                0xII 0xII 0xF1 0xII 
          */
+        
+        /////////////////////////////////////////Checking if button Held
+        //y-movement 
+        if(player->upActive){
+            player->speedY = -jump;
+        }
+        if(player->downActive){
+            player->speedY = fastSpeed;
+        }
+        //x-movement
+        if(player->rightActive){
+            player->speedX = fastSpeed;
+        }
+        if(player->leftActive){
+            player->speedX = -fastSpeed;
+        }
 
         ///////////////////////////////////////Checking if button released
         if(byte2 == 0xF0){
@@ -5420,42 +5436,26 @@ void player1Input(Character *player){
         ///////////////////////////////////////Checking if button pressed
         else{
             //y-movement 
-            if(byte1 == 0x1D){
+            if(byte1 == 0x1D && !player->upActive){
                 player->speedY = -jump;
                 player->upActive = 1;
             }
-            else if(byte1 == 0x1B){
+            else if(byte1 == 0x1B && !player->downActive){
                 player->speedY = regSpeed;
                 player->downActive = 1;
             }
             //x-movement
-            else if(byte1 == 0x23){
+            else if(byte1 == 0x23 && !player->rightActive){
                 player->speedX = regSpeed;
                 player->rightActive = 1;
             }
-            else if(byte1 == 0x1C){
+            else if(byte1 == 0x1C && !player->leftActive){
                 player->speedX = -regSpeed;
                 player->leftActive = 1;
             }
         }
 
-        /////////////////////////////////////////Checking if button Held
-        if(player->rightActive || player->leftActive || player->upActive || player->downActive){
-            //y-movement 
-            if(byte1 == 0x1D){
-                player->speedY = -jump;
-            }
-            else if(byte1 == 0x1B){
-                player->speedY = fastSpeed;
-            }
-            //x-movement
-            else if(byte1 == 0x23){
-                player->speedX = fastSpeed;
-            }
-            else if(byte1 == 0x1C){
-                player->speedX = -fastSpeed;
-            }
-        }
+        
 
     }
 
