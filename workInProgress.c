@@ -5211,7 +5211,7 @@ void gravityEffect(int *shifty, int height){
     int maxDropSpeed = 160;
     int relativeGround = groundY - height;
     if(*shifty < relativeGround){
-        *shifty += maxDropSpeed/(10*(relativeGround - *shifty));
+        *shifty += maxDropSpeed/((relativeGround - *shifty));
         if(*shifty > relativeGround){
             *shifty = relativeGround;
         }
