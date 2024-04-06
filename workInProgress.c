@@ -5096,6 +5096,7 @@ void applyBallSpeed(Ball *ball, Character *player1, Character *player2);
 void ballWallCollision(Ball *ball);
 void applyBallDrag(Ball *ball);
 int isPlayerHittingBall(Ball *ball, Character *player);
+void ballCrossingPlayer(Ball *ball, Character *player);
 
 void gravityEffect(int *shifty, int height);
 
@@ -5200,6 +5201,8 @@ void partialDrawBg(int startX, int startY, int lengthX, int lengthY){
 
 //Draws character facing right
 void drawCharacterR(Character *player){
+    wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
+
     //Setting Up prev location info for double buffer erase
     player->prev2X = player->prev1X;
     player->prev2Y = player->prev1Y;
@@ -5207,7 +5210,7 @@ void drawCharacterR(Character *player){
     player->prev1X = player->x;
     player->prev1Y = player->y; 
     
-    wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
+    
     
     for(int y = 0; y < characterLengthY; y++){
         for(int x = 0; x < characterLengthX; x++){
@@ -5221,6 +5224,8 @@ void drawCharacterR(Character *player){
 
 //Draws character facing right
 void drawCharacterL(Character *player){
+    wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
+    
     //Setting Up prev location info for double buffer erase
     player->prev2X = player->prev1X;
     player->prev2Y = player->prev1Y;
@@ -5228,7 +5233,7 @@ void drawCharacterL(Character *player){
     player->prev1X = player->x;
     player->prev1Y = player->y; 
     
-    wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
+    
     
     for(int y = 0; y < characterLengthY; y++){
         for(int x = 0; x < characterLengthX; x++){
@@ -5251,22 +5256,24 @@ void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY){
 }
 
 void gravityEffect(int *shifty, int height){
-    int maxDropSpeed = 160;
+    //The division is messing up with redraw pixels as we sometimes mis round where character reall is
+    /* int maxDropSpeed = 160;
     int relativeGround = groundY - height;
     if(*shifty < relativeGround){
         *shifty += maxDropSpeed/((relativeGround - *shifty));
         if(*shifty > relativeGround){
             *shifty = relativeGround;
         }
-    }
-    /* int relativeGround = groundY - height;
+    } */
+
+    int relativeGround = groundY - height;
     if(*shifty < relativeGround){
         *shifty += 10;
         if(*shifty > relativeGround){
             *shifty = relativeGround;
         }
 
-    } */
+    }
 }
 
 
@@ -5366,14 +5373,14 @@ void playerMoveBall(Ball *ball, Character *player1){
             ball->speedX = ball->speedX + player1->speedX;
         }
     }
-    else{
+    else{ //ball hits player standing still
         ball->speedX = -ball->speedX;
     }
-    if(ball->speedX == 0){
+    if(ball->speedX == 0){ // ball is still
         ball->speedX = player1->speedX;
     }
 
-    //Todo: go back to applyBall_CharacterCollision then do conditions for each player hitting ball and both hitting together 
+
 }
 
 int isPlayerHittingBall(Ball *ball, Character *player){ 
@@ -5424,6 +5431,8 @@ void applyBallDrag(Ball *ball){
 }
 
 void applyBallSpeed(Ball *ball, Character *player1, Character *player2){
+    //ballCrossingPlayer(ball, player1);
+    
     ball->x += ball->speedX;
     if(isPlayerHittingBall(ball, player1)){
         ball->x -= ball->speedX;
@@ -5434,6 +5443,61 @@ void applyBallSpeed(Ball *ball, Character *player1, Character *player2){
         ball->y -= ball->speedY;
     }
     
+}
+
+//finish: call in applyBallspeed
+void ballCrossingPlayer(Ball *ball, Character *player){
+    
+
+    //can apply same logic with up and down speed but need to update ball->speed updates for each case
+
+    int leftballSpeed = 0;
+    int rightballSpeed = 0;
+
+    if(ball->speedX < 0){
+        leftballSpeed = ball->speedX;
+    }
+    else if(ball->speedX > 0){
+        rightballSpeed = ball->speedX;
+    }
+
+
+
+    
+    //Check for bottom of character
+    if(player->y + characterLengthY >= ball->y && player->y + characterLengthY <= ball->y + ballDiameter){
+        
+        //Check for right side of character
+        if(player->x + characterLengthX >= ball->x + leftballSpeed && player->x + characterLengthX <= ball->x + ballDiameter){
+            ball->speedX = player->x + characterLengthX - ball->x;
+            return;
+        }
+        
+        //Check for left side of character
+        if((player->x >= ball->x && player->x <= ball->x + ballDiameter + rightballSpeed)){
+            ball->speedX = player->x - ball->x;
+            return;
+        }
+    }
+
+    //Check for top of character
+    if(player->y >= ball->y && player->y <= ball->y + ballDiameter){
+        
+        //Check for right side of character
+        if(player->x + characterLengthX >= ball->x + leftballSpeed && player->x + characterLengthX <= ball->x + ballDiameter){
+            ball->speedX = player->x + characterLengthX - ball->x;
+            return;
+        }
+        
+        //Check for left side of character
+        if((player->x >= ball->x && player->x <= ball->x + ballDiameter + rightballSpeed)){
+            ball->speedX = player->x - ball->x;
+            return;
+        }
+
+    }
+
+    return;
 }
 
 void drawPic(int x_d, int y_d, const unsigned short *picArray){
