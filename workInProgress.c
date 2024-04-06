@@ -5347,9 +5347,9 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
     
 }
 
-//Finish
+//what happens after ball is hit by individual player
 void playerMoveBall(Ball *ball, Character *player1){
-    //what happens after ball is hit by individual player
+    
     if(player1->speedX > 0){//Player Positive Movement
         if(ball->speedX > 0){//Ball Positive Movement
             ball->speedX += player1->speedX;
