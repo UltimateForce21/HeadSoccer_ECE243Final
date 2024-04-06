@@ -5034,7 +5034,10 @@ void swap(int *a, int *b);
 int abs(int a);
 void wait_for_vsync();
 void drawPic(int x_d, int y_d, const unsigned short *picArray);
+void drawBg();
+void partialDrawBg(int startX, int startY, int lengthX, int lengthY);
 void drawTransparentPic(int x_d, int y_d, unsigned short *picArray);
+
 
 #define groundY 210
 
@@ -5055,11 +5058,15 @@ typedef struct{
     int rightDashCounter; //Looks for Double Right click
     int leftDashCounter; //Looks for Double left click
     int Dashed; //1 if just Dashed, used to set speedX back to 0 after dash
+    int prev1X;
+    int prev1Y;
+    int prev2X;
+    int prev2Y;
 
 } Character;
 
 void drawCharacterFR(int *shiftx, int *shifty);
-void drawCharacterFL(int *shiftx, int *shifty);
+void drawCharacterFL(Character *player);
 void player1Input(Character *player);
 void applyPlayerSpeed(Character *player);
 void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY);
@@ -5075,6 +5082,10 @@ typedef struct{
     int y;
     int speedX;
     int speedY;
+    int prev1X;
+    int prev1Y;
+    int prev2X;
+    int prev2Y;
 } Ball;
 
 void drawFootball(Ball *ball, Character *player1, Character *player2);
@@ -5175,6 +5186,15 @@ void drawBg(){
     drawPic(320, 240, stadium);
 }
 
+void partialDrawBg(int startX, int startY, int lengthX, int lengthY){
+    for(int y = startY; y < startY + lengthY; y++){
+        for(int x = startX; x < startX + lengthX; x++){
+            int index = x + y * 320;
+            plot_pixel(x, y, stadium[index]);
+        }
+    }
+}
+
 //Draws character facing right
 void drawCharacterFR(int *shiftx, int *shifty){
     wallCollision(shiftx, shifty, characterLengthX, characterLengthY);
@@ -5190,18 +5210,23 @@ void drawCharacterFR(int *shiftx, int *shifty){
 }
 
 //Draws character facing right
-void drawCharacterFL(int *shiftx, int *shifty){
-   
+void drawCharacterFL(Character *player){
+    //Setting Up prev location info for double buffer erase
+    player->prev2X = player->prev1X;
+    player->prev2Y = player->prev1Y;
+
+    player->prev1X = player->x;
+    player->prev1Y = player->y; 
     
-    wallCollision(shiftx, shifty, characterLengthX, characterLengthY);
+    wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
     
     for(int y = 0; y < characterLengthY; y++){
         for(int x = 0; x < characterLengthX; x++){
             int index = characterLengthX - x + y * characterLengthY;
-            if(c1[index] != TRANSPARENCY_FOOTBALL) plot_pixel(*shiftx + x, *shifty + y, c1[index]);
+            if(c1[index] != TRANSPARENCY_FOOTBALL) plot_pixel(player->x + x, player->y + y, c1[index]);
         }
     }
-    gravityEffect(shifty, characterLengthY);
+    gravityEffect(&(player->y), characterLengthY);
     //drawPic(100, 100, c1);
 }
 
@@ -5236,6 +5261,16 @@ void gravityEffect(int *shifty, int height){
 
 
 void drawFootball(Ball *ball, Character *player1, Character *player2){
+    //Setting Up prev location info for double buffer erase
+    
+
+    ball->prev1X = ball->x;
+    ball->prev1Y = ball->y; 
+
+    ball->prev2X = ball->prev1X;
+    ball->prev2Y = ball->prev1Y;
+
+
     applyBall_CharacterCollision(ball, player1, player2);
     //TODO: 
     applyBallSpeed(ball, player1, player2);
@@ -5626,6 +5661,10 @@ int main(void) {
     //Initialize Character 1 Start Position at Goal Post
     Player1.x = 20;
     Player1.y = 170;
+    Player1.prev1X = 20;
+    Player1.prev1Y = 170;
+    Player1.prev2X = 20;
+    Player1.prev2Y = 170;
 
 
     Character Player2 = {0}; 
@@ -5636,6 +5675,10 @@ int main(void) {
     Ball ball = {0}; 
     ball.x = 160;
     ball.y = groundY - ballDiameter;
+    ball.prev1X = 160;
+    ball.prev1Y = groundY - ballDiameter;
+    ball.prev2X = 160;
+    ball.prev2Y = groundY - ballDiameter;
     
 
 	
@@ -5648,21 +5691,27 @@ int main(void) {
 	wait_for_vsync();
 	/* initialize a pointer to the pixel buffer, used by drawing functions */
 	pixel_buffer_start = *pixel_ctrl_ptr;
-	clear_screen(); // pixel_buffer_start points to the pixel buffer
-
+	//clear_screen(); // pixel_buffer_start points to the pixel buffer
+    drawBg();
 	/* set back pixel buffer to Buffer 2 */
 	*(pixel_ctrl_ptr + 1) = (int) &Buffer2;
 	pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
-	clear_screen(); // pixel_buffer_start points to the pixel buffer
-
+	//clear_screen(); // pixel_buffer_start points to the pixel buffer
+    drawBg();
 	while (1)
 	{
         
 		//audio_playback_mono2(samples, &currSample, samples_n, 10600);
 		*(LED) = currSample;
-		drawBg();
+		//drawBg();
+        partialDrawBg(Player1.prev2X, Player1.prev2Y, characterLengthX, characterLengthY);
+        partialDrawBg(Player1.x, Player1.y, characterLengthX, characterLengthY);
+        
+        partialDrawBg(ball.prev2X, ball.prev2Y, ballDiameter, ballDiameter);
+        partialDrawBg(ball.x, ball.y, ballDiameter, ballDiameter);
+        
         player1Input(&Player1);
-		drawCharacterFL(&(Player1.x), &(Player1.y)); //draws the character
+		drawCharacterFL(&Player1); //draws the character
         drawFootball(&ball, &Player1, &Player2);
         
         draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground //Remove
