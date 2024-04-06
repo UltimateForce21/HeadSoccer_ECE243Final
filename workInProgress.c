@@ -5079,9 +5079,10 @@ typedef struct{
 
 void drawFootball(Ball *ball, Character *player1, Character *player2);
 void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2);
-void applyBallSpeed(Ball *ball);
+void applyBallSpeed(Ball *ball, Character *player1, Character *player2);
 void ballWallCollision(Ball *ball);
 void applyBallDrag(Ball *ball);
+int isPlayerHittingBall(Ball *ball, Character *player);
 
 void gravityEffect(int *shifty, int height);
 
@@ -5237,7 +5238,7 @@ void gravityEffect(int *shifty, int height){
 void drawFootball(Ball *ball, Character *player1, Character *player2){
     applyBall_CharacterCollision(ball, player1, player2);
     //TODO: 
-    applyBallSpeed(ball);
+    applyBallSpeed(ball, player1, player2);
     ballWallCollision(ball);
     
     for(int y = 0; y < ballDiameter; y++){
@@ -5280,7 +5281,7 @@ void ballWallCollision(Ball *ball){
 void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2){
     
     //Player 1 hitting left side of the ball
-    if(player1->x + characterLengthX > ball->x && player1->x + characterLengthX < ball->x + ballDiameter){
+    if(isPlayerHittingBall(ball, player1)){
         if(player1->speedX > 0){//Player Positive Movement
             if(ball->speedX > 0){//Ball Positive Movement
                 ball->speedX += player1->speedX;
@@ -5311,6 +5312,29 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
     
 }
 
+int isPlayerHittingBall(Ball *ball, Character *player){
+    
+    if(player->y >= ball->y && player->y <= ball->y + ballDiameter){
+        //Check for top of character
+        
+        if(player->y + characterLengthY >= ball->y && player->y + characterLengthY <= ball->y + ballDiameter){
+            //Check for bottom of character
+
+            if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
+                //Check for right side of character
+                return 1;
+            }
+            
+            if((player->x >= ball->x && player->x <= ball->x + ballDiameter)){
+                //Check for left side of character
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
 void applyBallDrag(Ball *ball){
     //Apply Drag
     int drag = 2;
@@ -5325,9 +5349,17 @@ void applyBallDrag(Ball *ball){
     }
 }
 
-void applyBallSpeed(Ball *ball){
+void applyBallSpeed(Ball *ball, Character *player1, Character *player2){
     ball->x += ball->speedX;
+    if(isPlayerHittingBall(ball, player1)){
+        ball->x -= ball->speedX;
+    }
+
     ball->y += ball->speedY;
+    if(isPlayerHittingBall(ball, player1)){
+        ball->y -= ball->speedY;
+    }
+    
 }
 
 void drawPic(int x_d, int y_d, const unsigned short *picArray){
