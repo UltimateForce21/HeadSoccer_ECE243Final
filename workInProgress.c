@@ -5081,6 +5081,7 @@ void drawFootball(Ball *ball, Character *player1, Character *player2);
 void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2);
 void applyBallSpeed(Ball *ball);
 void ballWallCollision(Ball *ball);
+void applyBallDrag(Ball *ball);
 
 void gravityEffect(int *shifty, int height);
 
@@ -5245,6 +5246,7 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
             if(football[index] != TRANSPARENCY_FOOTBALL) plot_pixel(ball->x + x, ball->y + y, football[index]);
         }
     }
+    applyBallDrag(ball);
     //drawPic(40, 40, football);
 }
 
@@ -5305,6 +5307,12 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
     }
 
     //Apply Drag
+    applyBallDrag(ball);
+    
+}
+
+void applyBallDrag(Ball *ball){
+    //Apply Drag
     int drag = 2;
     if(ball->speedX > 0){
         ball->speedX -= drag;
@@ -5315,7 +5323,6 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
     else if(ball->speedX <= drag && ball->speedX >= -drag){
         ball->speedX = 0;
     }
-    
 }
 
 void applyBallSpeed(Ball *ball){
