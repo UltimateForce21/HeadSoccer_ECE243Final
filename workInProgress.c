@@ -5043,6 +5043,7 @@ void drawTransparentPic(int x_d, int y_d, unsigned short *picArray);
 #define charCenterY 170
 #define characterLengthY 40
 #define characterLengthX 40
+#define jumpHeight 60
 
 typedef struct{
     int x;
@@ -5207,22 +5208,22 @@ void characterCollisionLogic(int *shiftx, int *shifty){
 }
 
 void gravityEffect(int *shifty, int height){
-    /* int maxDropSpeed = 40;
+    int maxDropSpeed = 160;
     int relativeGround = groundY - height;
     if(*shifty < relativeGround){
-        *shifty += maxDropSpeed/(relativeGround - *shifty);
+        *shifty += maxDropSpeed/(10*(relativeGround - *shifty));
         if(*shifty > relativeGround){
             *shifty = relativeGround;
         }
-    } */
-    int relativeGround = groundY - height;
+    }
+    /* int relativeGround = groundY - height;
     if(*shifty < relativeGround){
         *shifty += 10;
         if(*shifty > relativeGround){
             *shifty = relativeGround;
         }
 
-    }
+    } */
 }
 
 
@@ -5463,6 +5464,9 @@ void player1Input(Character *player){
 void applyPlayerSpeed(Character *player){
     player->x += player->speedX;
     player->y += player->speedY;
+    if((player->y <= charCenterY - jumpHeight)){
+        player->y = charCenterY - jumpHeight;
+    }
 }
 
 void applyDash(Character *player){
