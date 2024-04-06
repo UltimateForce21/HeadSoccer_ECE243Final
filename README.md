@@ -41,6 +41,10 @@ Ball Collision Logic
 2. Store the sizes of the images in structs (stored as the macro definitions search "Declarations" in file)
 3. 
 
+ ) CharacterCollision
+
+ ) Add Player 2
+
 d) Character Kick
 
 e) Update the background

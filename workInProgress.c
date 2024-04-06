@@ -5062,10 +5062,10 @@ void drawCharacterFR(int *shiftx, int *shifty);
 void drawCharacterFL(int *shiftx, int *shifty);
 void player1Input(Character *player);
 void applyPlayerSpeed(Character *player);
-void characterCollisionLogic(int *shiftx, int *shifty);
+void wallCollision(int *shiftx, int *shifty);
 void applyDash(Character *player);
 
-void gravityEffect(int *shifty, int height);
+
 
 //Ball Declarations
 #define ballDiameter 40
@@ -5078,7 +5078,10 @@ typedef struct{
 } Ball;
 
 void drawFootball(Ball *ball, Character *player1, Character *player2);
+void applyBallCollision(ball, player1, player2);
 
+
+void gravityEffect(int *shifty, int height);
 
 
 
@@ -5101,8 +5104,8 @@ short int Buffer2[240][512];
 
 
 ///////////////////////////////////////Memory I/O Addresses and Global Variable Pointers
-volatile int *LED = 0xFF200000;
-volatile int *KEYs = 0xFF200050;
+volatile int *LED = (volatile int *)0xFF200000;
+volatile int *KEYs = (volatile int *)0xFF200050;
 volatile int *ps2_ctrl_ptr = (int *)0xFF200100;
 
 
@@ -5171,7 +5174,7 @@ void drawBg(){
 
 //Draws character facing right
 void drawCharacterFR(int *shiftx, int *shifty){
-    characterCollisionLogic(shiftx, shifty);
+    wallCollision(shiftx, shifty);
 
 
     for(int y = 0; y < characterLengthY; y++){
@@ -5187,7 +5190,7 @@ void drawCharacterFR(int *shiftx, int *shifty){
 void drawCharacterFL(int *shiftx, int *shifty){
    
     
-    characterCollisionLogic(shiftx, shifty);
+    wallCollision(shiftx, shifty);
     
     for(int y = 0; y < characterLengthY; y++){
         for(int x = 0; x < characterLengthX; x++){
@@ -5199,8 +5202,10 @@ void drawCharacterFL(int *shiftx, int *shifty){
     //drawPic(100, 100, c1);
 }
 
-void characterCollisionLogic(int *shiftx, int *shifty){
-     if(*shiftx < 0 ) *shiftx = 0; //Left Border
+//Update: Fix this to also detect other character and net
+void wallCollision(int *shiftx, int *shifty){
+    
+    if(*shiftx < 0 ) *shiftx = 0; //Left Border
     if(*shiftx > 319 - characterLengthX) *shiftx = 319 - characterLengthX; //Right Border
 
     if(*shifty < 0 ) *shifty = 0; //Top Border
@@ -5228,6 +5233,8 @@ void gravityEffect(int *shifty, int height){
 
 
 void drawFootball(Ball *ball, Character *player1, Character *player2){
+    applyBallCollision(ball, player1, player2);
+    
     for(int y = 0; y < ballDiameter; y++){
         for(int x = 0; x < ballDiameter; x++){
             int index = x + y * ballDiameter;
@@ -5235,6 +5242,11 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
         }
     }
     //drawPic(40, 40, football);
+}
+
+//Checks if players have hit the ball or ball has it any boundaries
+void applyBallCollision(){
+
 }
 
 void drawPic(int x_d, int y_d, const unsigned short *picArray){
@@ -5390,7 +5402,6 @@ void player1Input(Character *player){
         byte1 = (ps2_data & 0xFF);
         
         int regSpeed = 10;
-        int fastSpeed = 40;
         int jump = 20;
 
         /* 
@@ -5509,13 +5520,11 @@ int main(void) {
     Player2.x = 20;
     Player2.y = 170;
 
-	
-    int shiftx = 0;
-    int shifty = 0;
-
     Ball ball = {0}; 
-    int footballshiftx = 0;
-    int footballshifty = 0;
+    ball.x = 160;
+    ball.y = groundY - ballDiameter;
+    
+
 	
 	
     /////////////////////Vsync Setup
