@@ -5347,24 +5347,33 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
     
 }
 
-int isPlayerHittingBall(Ball *ball, Character *player){
-    
+int isPlayerHittingBall(Ball *ball, Character *player){ 
+    if(player->y + characterLengthY >= ball->y && player->y + characterLengthY <= ball->y + ballDiameter){
+        //Check for bottom of character
+
+        if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
+            //Check for right side of character
+            return 1;
+        }
+        
+        if((player->x >= ball->x && player->x <= ball->x + ballDiameter)){
+            //Check for left side of character
+            return 1;
+        }
+    }
+
     if(player->y >= ball->y && player->y <= ball->y + ballDiameter){
         //Check for top of character
-        
-        if(player->y + characterLengthY >= ball->y && player->y + characterLengthY <= ball->y + ballDiameter){
-            //Check for bottom of character
-
-            if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
-                //Check for right side of character
-                return 1;
-            }
-            
-            if((player->x >= ball->x && player->x <= ball->x + ballDiameter)){
-                //Check for left side of character
-                return 1;
-            }
+        if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
+            //Check for right side of character
+            return 1;
         }
+        
+        if((player->x >= ball->x && player->x <= ball->x + ballDiameter)){
+            //Check for left side of character
+            return 1;
+        }
+
     }
 
     return 0;
