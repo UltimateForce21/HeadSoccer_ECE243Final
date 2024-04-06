@@ -5042,7 +5042,7 @@ void drawTransparentPic(int x_d, int y_d, unsigned short *picArray);
 #define groundY 210
 
 //Character Declarations
-#define charCenterX 20
+//#define charCenterX 20
 #define charCenterY 170
 #define characterLengthY 40
 #define characterLengthX 40
@@ -5065,9 +5065,9 @@ typedef struct{
 
 } Character;
 
-void drawCharacterFR(int *shiftx, int *shifty);
-void drawCharacterFL(Character *player);
-void player1Input(Character *player);
+void drawCharacterR(Character *player);
+void drawCharacterL(Character *player);
+void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned char *byte2, unsigned char up, unsigned char down, unsigned char right, unsigned left);
 void applyPlayerSpeed(Character *player);
 void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY);
 void applyDash(Character *player);
@@ -5120,7 +5120,8 @@ short int Buffer2[240][512];
 ///////////////////////////////////////Memory I/O Addresses and Global Variable Pointers
 volatile int *LED = (volatile int *)0xFF200000;
 volatile int *KEYs = (volatile int *)0xFF200050;
-volatile int *ps2_ctrl_ptr = (int *)0xFF200100;
+volatile int *ps2_ctrl_ptr0 = (int *)0xFF200100;
+volatile int *ps2_ctrl_ptr1 = (int *)0xFF200108;
 
 
 
@@ -5196,21 +5197,28 @@ void partialDrawBg(int startX, int startY, int lengthX, int lengthY){
 }
 
 //Draws character facing right
-void drawCharacterFR(int *shiftx, int *shifty){
-    wallCollision(shiftx, shifty, characterLengthX, characterLengthY);
+void drawCharacterR(Character *player){
+    //Setting Up prev location info for double buffer erase
+    player->prev2X = player->prev1X;
+    player->prev2Y = player->prev1Y;
 
-
+    player->prev1X = player->x;
+    player->prev1Y = player->y; 
+    
+    wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
+    
     for(int y = 0; y < characterLengthY; y++){
         for(int x = 0; x < characterLengthX; x++){
             int index = x + y * characterLengthY;
-            if(c1[index] != TRANSPARENCY_FOOTBALL) plot_pixel(*shiftx + x, *shifty + y, c1[index]);
+            if(c1[index] != TRANSPARENCY_FOOTBALL) plot_pixel(player->x + x, player->y + y, c1[index]);
         }
     }
+    gravityEffect(&(player->y), characterLengthY);
     //drawPic(100, 100, c1);
 }
 
 //Draws character facing right
-void drawCharacterFL(Character *player){
+void drawCharacterL(Character *player){
     //Setting Up prev location info for double buffer erase
     player->prev2X = player->prev1X;
     player->prev2Y = player->prev1Y;
@@ -5345,6 +5353,10 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
     //Apply Drag
     applyBallDrag(ball);
     
+}
+
+void playerMoveBall(Ball *ball, Character *player1){
+
 }
 
 int isPlayerHittingBall(Ball *ball, Character *player){ 
@@ -5530,10 +5542,13 @@ void plot_pixel(int x, int y, short int line_color)
 }
 
 //Global Byte Memory
-unsigned char byte1 = 0;
-unsigned char byte2 = 0; 
+unsigned char Player_1_byte1 = 0;
+unsigned char Player_1_byte2 = 0; 
 
-void player1Input(Character *player){
+unsigned char Player_2_byte1 = 0;
+unsigned char Player_2_byte2 = 0; 
+
+void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned char *byte2, unsigned char up, unsigned char down, unsigned char right, unsigned left){
     //Goal is to recognize player input and weather they are holding down the button or not
     //Variables to store the data read from the PS/2 input.
     int ps2_data;
@@ -5549,14 +5564,21 @@ void player1Input(Character *player){
     //Keyboard input processing. Keyboard input is read one byte at a time.
     //Every time a read is performed of the PS/2 control register, it discards the 
     //last byte.
-    ps2_data = *(ps2_ctrl_ptr);
+    if(keyboard == 1){
+        ps2_data = *(ps2_ctrl_ptr1);
+    }
+    else{
+        ps2_data = *(ps2_ctrl_ptr0);
+    }
+    
+
     validRead = ((ps2_data & 0x8000) != 0);
 
     if (validRead)
     {
         //Update the last 2 bytes read to reflect the current read.
-        byte2 = byte1;
-        byte1 = (ps2_data & 0xFF);
+        *byte2 = *byte1;
+        *byte1 = (ps2_data & 0xFF);
         
         int regSpeed = 10;
         int jump = 20;
@@ -5568,9 +5590,9 @@ void player1Input(Character *player){
         
 
         ///////////////////////////////////////Checking if button released
-        if(byte2 == 0xF0){
+        if(*byte2 == 0xF0){
             //y-movement
-            if(byte1 == 0x1D){
+            if(*byte1 == up){
                 player->speedY = 0;
                 
                 //Reseting Dashes
@@ -5578,7 +5600,7 @@ void player1Input(Character *player){
                 player->leftDashCounter = 0;
                 
             }
-            else if(byte1 == 0x1B){
+            else if(*byte1 == down){
                 player->speedY = 0;
                 
                 
@@ -5588,14 +5610,14 @@ void player1Input(Character *player){
 
             }
             //x-movement
-            else if(byte1 == 0x23){
+            else if(*byte1 == right){
                 player->speedX = 0;
 
                 player->rightDashCounter++;
                 player->leftDashCounter = 0; //Reset Left Dash
 
             }
-            else if(byte1 == 0x1C){
+            else if(*byte1 == left){
                 player->speedX = 0;
                 
                 player->rightDashCounter = 0; //Reseting Right Dash
@@ -5607,17 +5629,17 @@ void player1Input(Character *player){
         ///////////////////////////////////////Checking if button pressed
         else{
             //y-movement 
-            if(byte1 == 0x1D){
+            if(*byte1 == up){
                 player->speedY = -jump;
             }
-            else if(byte1 == 0x1B){
+            else if(*byte1 == down){
                 player->speedY = regSpeed;
             }
             //x-movement
-            else if(byte1 == 0x23){
+            else if(*byte1 == right){
                 player->speedX = regSpeed;
             }
-            else if(byte1 == 0x1C){
+            else if(*byte1 == left){
                 player->speedX = -regSpeed;   
             }
         }
@@ -5628,6 +5650,7 @@ void player1Input(Character *player){
     applyDash(player); //Applying Dash speed if dashing conditions met
     applyPlayerSpeed(player); //Applying Speed to Player
 }
+
 
 void applyPlayerSpeed(Character *player){
     player->x += player->speedX;
@@ -5677,10 +5700,15 @@ int main(void) {
 
 
     Character Player2 = {0}; 
-    //Initialize Character 1 Start Position at Goal Post
-    Player2.x = 20;
+    //Initialize Character 2 Start Position at Goal Post
+    Player2.x = 300;
     Player2.y = 170;
+    Player2.prev1X = 300;
+    Player2.prev1Y = 170;
+    Player2.prev2X = 300;
+    Player2.prev2Y = 170;
 
+    //Initializing Ball on Ground
     Ball ball = {0}; 
     ball.x = 160;
     ball.y = groundY - ballDiameter;
@@ -5712,15 +5740,34 @@ int main(void) {
         
 		//audio_playback_mono2(samples, &currSample, samples_n, 10600);
 		*(LED) = currSample;
-		//drawBg();
+		
+        ///////////////////////////////////////////////////////////Clearing the Screen
+        //drawBg();
+        //Player1
         partialDrawBg(Player1.prev2X, Player1.prev2Y, characterLengthX, characterLengthY);
         partialDrawBg(Player1.x, Player1.y, characterLengthX, characterLengthY);
+        //Player1
+        partialDrawBg(Player2.prev2X, Player2.prev2Y, characterLengthX, characterLengthY);
+        partialDrawBg(Player2.x, Player2.y, characterLengthX, characterLengthY);
         
+        //Ball
         partialDrawBg(ball.prev2X, ball.prev2Y, ballDiameter, ballDiameter);
         partialDrawBg(ball.x, ball.y, ballDiameter, ballDiameter);
         
-        player1Input(&Player1);
-		drawCharacterFL(&Player1); //draws the character
+        //////////////////////////////////////////////////Drawing and Input
+
+        //Input
+        playerInput(0, &Player1, &Player_1_byte1, &Player_1_byte2, 0x1D, 0x1B, 0x23, 0x1C);
+        playerInput(1, &Player2, &Player_2_byte1, &Player_2_byte2, 0x43, 0x42, 0x4B, 0x3B);
+
+        //Player1
+		drawCharacterL(&Player1); //draws the character
+
+        //Player1
+		drawCharacterR(&Player2); //draws the character
+
+
+        //Ball
         drawFootball(&ball, &Player1, &Player2);
         
         draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground //Remove
