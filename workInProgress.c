@@ -5049,12 +5049,12 @@ typedef struct{
     int y;
     int speedX;
     int speedY;
-    int rightActive;
-    int leftActive;
-    int upActive;
-    int downActive;
     int size;
     int kick; //1 if player kicks, otherwise 0
+    int rightDashCounter; //Looks for Double Right click
+    int leftDashCounter; //Looks for Double left click
+    int Dashed; //1 if just Dashed, used to set speedX back to 0 after dash
+
 } Character;
 
 void drawCharacterFR(int *shiftx, int *shifty);
@@ -5062,6 +5062,7 @@ void drawCharacterFL(int *shiftx, int *shifty);
 void player1Input(Character *player);
 void applyPlayerSpeed(Character *player);
 void characterCollisionLogic(int *shiftx, int *shifty);
+void applyDash(Character *player);
 
 void gravityEffect(int *shifty, int height);
 
@@ -5071,11 +5072,11 @@ void gravityEffect(int *shifty, int height);
 typedef struct{
     int x;
     int y;
-    int xVelocity;
-    int yVelocity;
+    int speedX;
+    int speedY;
 } Ball;
 
-void drawFootball(int shiftx, int shifty);
+void drawFootball(Ball *ball, Character *player1, Character *player2);
 
 
 
@@ -5225,11 +5226,11 @@ void gravityEffect(int *shifty, int height){
 }
 
 
-void drawFootball(int shiftx, int shifty){
+void drawFootball(Ball *ball, Character *player1, Character *player2){
     for(int y = 0; y < ballDiameter; y++){
         for(int x = 0; x < ballDiameter; x++){
             int index = x + y * ballDiameter;
-            if(football[index] != TRANSPARENCY_FOOTBALL) plot_pixel(shiftx + x, shifty + y, football[index]);
+            if(football[index] != TRANSPARENCY_FOOTBALL) plot_pixel(ball->x + x, ball->y + y, football[index]);
         }
     }
     //drawPic(40, 40, football);
@@ -5396,40 +5397,43 @@ void player1Input(Character *player){
         if held:                                0xII 0xII 0xF1 0xII 
          */
         
-        /////////////////////////////////////////Checking if button Held
-        //y-movement 
-        if(player->upActive){
-            player->speedY = -jump;
-        }
-        if(player->downActive){
-            player->speedY = fastSpeed;
-        }
-        //x-movement
-        if(player->rightActive){
-            player->speedX = fastSpeed;
-        }
-        if(player->leftActive){
-            player->speedX = -fastSpeed;
-        }
 
         ///////////////////////////////////////Checking if button released
         if(byte2 == 0xF0){
+            //y-movement
             if(byte1 == 0x1D){
                 player->speedY = 0;
-                player->upActive = 0; 
+                player->upActive = 0;
+                //Reseting Dashes
+                player->rightDashCounter = 0;
+                player->leftDashCounter = 0;
+                
             }
             else if(byte1 == 0x1B){
                 player->speedY = 0;
                 player->downActive = 0;
+                
+                //Reseting Dashes
+                player->rightDashCounter = 0;
+                player->leftDashCounter = 0;
+
             }
             //x-movement
             else if(byte1 == 0x23){
                 player->speedX = 0;
                 player->rightActive = 0;
+
+                player->rightDashCounter++;
+                player->leftDashCounter = 0; //Reset Left Dash
+
             }
             else if(byte1 == 0x1C){
                 player->speedX = 0;
                 player->leftActive = 0;
+
+                player->rightDashCounter = 0; //Reseting Right Dash
+                player->leftDashCounter++; //Proccing Left Dash Counter
+
             }
         }
 
@@ -5439,32 +5443,60 @@ void player1Input(Character *player){
             if(byte1 == 0x1D && !player->upActive){
                 player->speedY = -jump;
                 player->upActive = 1;
+
+                
             }
             else if(byte1 == 0x1B && !player->downActive){
                 player->speedY = regSpeed;
                 player->downActive = 1;
+
+                
             }
             //x-movement
             else if(byte1 == 0x23 && !player->rightActive){
                 player->speedX = regSpeed;
                 player->rightActive = 1;
+
+                
             }
             else if(byte1 == 0x1C && !player->leftActive){
                 player->speedX = -regSpeed;
                 player->leftActive = 1;
+                
             }
         }
 
         
 
     }
-
+    applyDash(player); //Applying Dash speed if dashing conditions met
     applyPlayerSpeed(player); //Applying Speed to Player
 }
 
 void applyPlayerSpeed(Character *player){
     player->x += player->speedX;
-    player ->y += player->speedY;
+    player->y += player->speedY;
+}
+
+void applyDash(Character *player){
+    int dashSpeed = 40;
+
+    if(player->Dashed){
+        player->speedX = 0;
+        player->Dashed = 0;
+    }
+
+    //Checking if Dash Needed 
+    if(player->rightDashCounter == 2){
+        player->speedX = dashSpeed;
+        player->rightDashCounter = 0;
+        player->Dashed = 1;
+    }
+    else if(player->leftDashCounter == 2){
+        player->speedX = -dashSpeed;
+        player->leftDashCounter = 0;
+        player->Dashed = 1;
+    }
 }
 
 
@@ -5472,15 +5504,25 @@ void applyPlayerSpeed(Character *player){
 int main(void) {
   	//audio_playback_mono(samples, samples_n);
 	audio_setup();
+    int currSample = 0;
 
     
     Character Player1 = {0}; 
     //Initialize Character 1 Start Position at Goal Post
     Player1.x = 20;
     Player1.y = 170;
-	int currSample = 0;
+
+
+    Character Player2 = {0}; 
+    //Initialize Character 1 Start Position at Goal Post
+    Player2.x = 20;
+    Player2.y = 170;
+
+	
     int shiftx = 0;
     int shifty = 0;
+
+    Ball ball = {0}; 
     int footballshiftx = 0;
     int footballshifty = 0;
 	
@@ -5508,11 +5550,24 @@ int main(void) {
 		drawBg();
         player1Input(&Player1);
 		drawCharacterFL(&(Player1.x), &(Player1.y)); //draws the character
-        drawFootball(footballshiftx, footballshifty);
+        drawFootball(&ball, &Player1, &Player2);
         
-        draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground
+        draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground //Remove
         
-        if((*(KEYs) & 0b0001) == 0b0001){
+
+
+		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer 
+
+
+
+	}
+	
+}
+
+
+void pushButtonMovement(int shiftx, int shifty){
+    if((*(KEYs) & 0b0001) == 0b0001){
             *(KEYs + 3) = 0b0001;
             shiftx += 5;
         }
@@ -5529,15 +5584,5 @@ int main(void) {
             *(KEYs + 3) = 0b0100;
             shifty -= 5;
         }
-        
-
-
-		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
-		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer 
-
-
-
-	}
-	
 }
 
