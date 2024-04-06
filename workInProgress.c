@@ -5062,7 +5062,7 @@ void drawCharacterFR(int *shiftx, int *shifty);
 void drawCharacterFL(int *shiftx, int *shifty);
 void player1Input(Character *player);
 void applyPlayerSpeed(Character *player);
-void wallCollision(int *shiftx, int *shifty);
+void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY);
 void applyDash(Character *player);
 
 
@@ -5078,8 +5078,9 @@ typedef struct{
 } Ball;
 
 void drawFootball(Ball *ball, Character *player1, Character *player2);
-void applyBallCollision(ball, player1, player2);
-
+void applyBallCollision(Ball *ball, Character *player1, Character *player2);
+void applyBallSpeed(Ball *ball);
+void ballWallCollision(Ball *ball);
 
 void gravityEffect(int *shifty, int height);
 
@@ -5174,7 +5175,7 @@ void drawBg(){
 
 //Draws character facing right
 void drawCharacterFR(int *shiftx, int *shifty){
-    wallCollision(shiftx, shifty);
+    wallCollision(shiftx, shifty, characterLengthX, characterLengthY);
 
 
     for(int y = 0; y < characterLengthY; y++){
@@ -5190,7 +5191,7 @@ void drawCharacterFR(int *shiftx, int *shifty){
 void drawCharacterFL(int *shiftx, int *shifty){
    
     
-    wallCollision(shiftx, shifty);
+    wallCollision(shiftx, shifty, characterLengthX, characterLengthY);
     
     for(int y = 0; y < characterLengthY; y++){
         for(int x = 0; x < characterLengthX; x++){
@@ -5203,13 +5204,13 @@ void drawCharacterFL(int *shiftx, int *shifty){
 }
 
 //Update: Fix this to also detect other character and net
-void wallCollision(int *shiftx, int *shifty){
+void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY){
     
     if(*shiftx < 0 ) *shiftx = 0; //Left Border
-    if(*shiftx > 319 - characterLengthX) *shiftx = 319 - characterLengthX; //Right Border
+    if(*shiftx > 319 - sizeX) *shiftx = 319 - sizeX; //Right Border
 
     if(*shifty < 0 ) *shifty = 0; //Top Border
-    if(*shifty > groundY - characterLengthY) *shifty = groundY - characterLengthY; //Bottom Border
+    if(*shifty > groundY - sizeY) *shifty = groundY - sizeY; //Bottom Border
 }
 
 void gravityEffect(int *shifty, int height){
@@ -5234,6 +5235,9 @@ void gravityEffect(int *shifty, int height){
 
 void drawFootball(Ball *ball, Character *player1, Character *player2){
     applyBallCollision(ball, player1, player2);
+    //TODO: 
+    applyBallSpeed(ball);
+    ballWallCollision(ball);
     
     for(int y = 0; y < ballDiameter; y++){
         for(int x = 0; x < ballDiameter; x++){
@@ -5244,9 +5248,53 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
     //drawPic(40, 40, football);
 }
 
-//Checks if players have hit the ball or ball has it any boundaries
-void applyBallCollision(){
+void ballWallCollision(Ball *ball){
+    if(ball->x < 0 ) 
+    {
+        ball->x = 0; //Left Border
+        ball->speedX = -ball->speedX;
+        ball->x += ball->speedX;
+    }
+    else if(ball->x > 319 - ballDiameter) {
+        ball->x = 319 - ballDiameter;
+        ball->speedX = -ball->speedX;
+        ball->x += ball->speedX;
+    } //Right Border
 
+    if(ball->y < 0 ) {
+        ball->y = 0; //Top Border
+        ball->speedY = -ball->speedY;
+        ball->y += ball->speedY;
+    }
+    else if(ball->y > groundY - ballDiameter){ 
+        ball->y = groundY - ballDiameter;
+        ball->speedY = -ball->speedY;
+        ball->y += ball->speedY;
+    } //Bottom Border
+
+}
+
+//Checks if players have hit the ball or ball has it any boundaries
+void applyBallCollision(Ball *ball, Character *player1, Character *player2){
+    
+    //Player 1 hitting left side of the ball
+    if(player1->x + characterLengthX > ball->x && player1->x + characterLengthX < ball->x + ballDiameter/2){
+        if(player1->speedX > 0){
+            ball->speedX += player1->speedX;
+        }
+        else if(player1->speedX < 0){
+            ball->speedX -= player1->speedX;
+        }
+        else{
+            ball->speedX = -ball->speedX;
+        }
+        
+    }
+}
+
+void applyBallSpeed(Ball *ball){
+    ball->x += ball->speedX;
+    ball->y += ball->speedY;
 }
 
 void drawPic(int x_d, int y_d, const unsigned short *picArray){
