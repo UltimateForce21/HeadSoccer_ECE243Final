@@ -5033,7 +5033,7 @@ void draw_line(int x0, int y0, int x1, int y1, int short color);
 void swap(int *a, int *b);
 int abs(int a);
 void wait_for_vsync();
-void drawPic(int x_d, int y_d, unsigned short *picArray);
+void drawPic(int x_d, int y_d, const unsigned short *picArray);
 void drawTransparentPic(int x_d, int y_d, unsigned short *picArray);
 
 #define groundY 210
@@ -5236,7 +5236,7 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
     //drawPic(40, 40, football);
 }
 
-void drawPic(int x_d, int y_d, unsigned short *picArray){
+void drawPic(int x_d, int y_d, const unsigned short *picArray){
     for(int y = 0; y < y_d; y++){
         for(int x = 0; x < x_d; x++){
             int index = x + y * x_d;
