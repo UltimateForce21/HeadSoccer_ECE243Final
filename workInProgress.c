@@ -5074,6 +5074,7 @@ void applyDash(Character *player);
 
 
 
+
 //Ball Declarations
 #define ballDiameter 10
 
@@ -5090,6 +5091,7 @@ typedef struct{
 
 void drawFootball(Ball *ball, Character *player1, Character *player2);
 void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2);
+void playerMoveBall(Ball *ball, Character *player1);
 void applyBallSpeed(Ball *ball, Character *player1, Character *player2);
 void ballWallCollision(Ball *ball);
 void applyBallDrag(Ball *ball);
@@ -5322,32 +5324,22 @@ void ballWallCollision(Ball *ball){
 
 //Checks if players have hit the ball or ball has it any boundaries
 void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2){
-    
-    //Player 1 hitting left side of the ball
-    if(isPlayerHittingBall(ball, player1)){
-        if(player1->speedX > 0){//Player Positive Movement
-            if(ball->speedX > 0){//Ball Positive Movement
-                ball->speedX += player1->speedX;
-            }
-            else if(ball->speedX < 0){//Ball Negative Movement
-                ball->speedX = -ball->speedX + player1->speedX;
-            }
-        }
-        else if(player1->speedX < 0){
-            if(ball->speedX > 0){//Ball Positive Movement
-                ball->speedX = player1->speedX - ball->speedX;
-            }
-            else if(ball->speedX < 0){//Ball Negative Movement
-                ball->speedX = ball->speedX + player1->speedX;
-            }
-        }
-        else{
-            ball->speedX = -ball->speedX;
-        }
-        if(ball->speedX == 0){
-            ball->speedX = player1->speedX;
-        }
+
+    //if both players hit ball
+    if(isPlayerHittingBall(ball, player1) && isPlayerHittingBall(ball, player2)){ 
         
+        ball->speedX = 0;
+        ball->speedY = 0;
+    }
+
+    //if only player 1 hit ball
+    else if(isPlayerHittingBall(ball, player1)){ 
+        playerMoveBall(ball, player1);
+    }
+
+    //if only player 2 hit ball
+    else if(isPlayerHittingBall(ball, player2)){
+        playerMoveBall(ball, player2);
     }
 
     //Apply Drag
@@ -5357,35 +5349,58 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
 
 //Finish
 void playerMoveBall(Ball *ball, Character *player1){
-    //what happens after ball is hit
+    //what happens after ball is hit by individual player
+    if(player1->speedX > 0){//Player Positive Movement
+        if(ball->speedX > 0){//Ball Positive Movement
+            ball->speedX += player1->speedX;
+        }
+        else if(ball->speedX < 0){//Ball Negative Movement
+            ball->speedX = -ball->speedX + player1->speedX;
+        }
+    }
+    else if(player1->speedX < 0){
+        if(ball->speedX > 0){//Ball Positive Movement
+            ball->speedX = player1->speedX - ball->speedX;
+        }
+        else if(ball->speedX < 0){//Ball Negative Movement
+            ball->speedX = ball->speedX + player1->speedX;
+        }
+    }
+    else{
+        ball->speedX = -ball->speedX;
+    }
+    if(ball->speedX == 0){
+        ball->speedX = player1->speedX;
+    }
 
     //Todo: go back to applyBall_CharacterCollision then do conditions for each player hitting ball and both hitting together 
 }
 
 int isPlayerHittingBall(Ball *ball, Character *player){ 
+    //Check for bottom of character
     if(player->y + characterLengthY >= ball->y && player->y + characterLengthY <= ball->y + ballDiameter){
-        //Check for bottom of character
-
+        
+        //Check for right side of character
         if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
-            //Check for right side of character
             return 1;
         }
         
+        //Check for left side of character
         if((player->x >= ball->x && player->x <= ball->x + ballDiameter)){
-            //Check for left side of character
             return 1;
         }
     }
 
+    //Check for top of character
     if(player->y >= ball->y && player->y <= ball->y + ballDiameter){
-        //Check for top of character
+        
+        //Check for right side of character
         if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
-            //Check for right side of character
             return 1;
         }
         
+        //Check for left side of character
         if((player->x >= ball->x && player->x <= ball->x + ballDiameter)){
-            //Check for left side of character
             return 1;
         }
 
