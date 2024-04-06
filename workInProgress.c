@@ -5421,7 +5421,6 @@ void player1Input(Character *player){
             //x-movement
             else if(byte1 == 0x23){
                 player->speedX = 0;
-                player->rightActive = 0;
 
                 player->rightDashCounter++;
                 player->leftDashCounter = 0; //Reset Left Dash
