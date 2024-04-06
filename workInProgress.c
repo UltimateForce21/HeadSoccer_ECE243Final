@@ -5078,7 +5078,7 @@ typedef struct{
 } Ball;
 
 void drawFootball(Ball *ball, Character *player1, Character *player2);
-void applyBallCollision(Ball *ball, Character *player1, Character *player2);
+void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2);
 void applyBallSpeed(Ball *ball);
 void ballWallCollision(Ball *ball);
 
@@ -5234,7 +5234,7 @@ void gravityEffect(int *shifty, int height){
 
 
 void drawFootball(Ball *ball, Character *player1, Character *player2){
-    applyBallCollision(ball, player1, player2);
+    applyBall_CharacterCollision(ball, player1, player2);
     //TODO: 
     applyBallSpeed(ball);
     ballWallCollision(ball);
@@ -5275,21 +5275,47 @@ void ballWallCollision(Ball *ball){
 }
 
 //Checks if players have hit the ball or ball has it any boundaries
-void applyBallCollision(Ball *ball, Character *player1, Character *player2){
+void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2){
     
     //Player 1 hitting left side of the ball
-    if(player1->x + characterLengthX > ball->x && player1->x + characterLengthX < ball->x + ballDiameter/2){
-        if(player1->speedX > 0){
-            ball->speedX += player1->speedX;
+    if(player1->x + characterLengthX > ball->x && player1->x + characterLengthX < ball->x + ballDiameter){
+        if(player1->speedX > 0){//Player Positive Movement
+            if(ball->speedX > 0){//Ball Positive Movement
+                ball->speedX += player1->speedX;
+            }
+            else if(ball->speedX < 0){//Ball Negative Movement
+                ball->speedX = -ball->speedX + player1->speedX;
+            }
         }
         else if(player1->speedX < 0){
-            ball->speedX -= player1->speedX;
+            if(ball->speedX > 0){//Ball Positive Movement
+                ball->speedX = player1->speedX - ball->speedX;
+            }
+            else if(ball->speedX < 0){//Ball Negative Movement
+                ball->speedX = ball->speedX + player1->speedX;
+            }
         }
         else{
             ball->speedX = -ball->speedX;
         }
+        if(ball->speedX == 0){
+            ball->speedX = player1->speedX;
+        }
         
     }
+
+    //Apply Drag
+    int drag = 2;
+    if(ball->speedX > 0){
+        ball->speedX -= drag;
+    }
+    else if(ball->speedX < 0){
+        ball->speedX += drag;
+    }
+    else if(ball->speedX <= drag && ball->speedX >= -drag){
+        ball->speedX = 0;
+    }
+    
 }
 
 void applyBallSpeed(Ball *ball){
