@@ -5403,7 +5403,7 @@ void player1Input(Character *player){
             //y-movement
             if(byte1 == 0x1D){
                 player->speedY = 0;
-                player->upActive = 0;
+                
                 //Reseting Dashes
                 player->rightDashCounter = 0;
                 player->leftDashCounter = 0;
@@ -5411,7 +5411,7 @@ void player1Input(Character *player){
             }
             else if(byte1 == 0x1B){
                 player->speedY = 0;
-                player->downActive = 0;
+                
                 
                 //Reseting Dashes
                 player->rightDashCounter = 0;
@@ -5429,8 +5429,7 @@ void player1Input(Character *player){
             }
             else if(byte1 == 0x1C){
                 player->speedX = 0;
-                player->leftActive = 0;
-
+                
                 player->rightDashCounter = 0; //Reseting Right Dash
                 player->leftDashCounter++; //Proccing Left Dash Counter
 
@@ -5440,29 +5439,18 @@ void player1Input(Character *player){
         ///////////////////////////////////////Checking if button pressed
         else{
             //y-movement 
-            if(byte1 == 0x1D && !player->upActive){
+            if(byte1 == 0x1D){
                 player->speedY = -jump;
-                player->upActive = 1;
-
-                
             }
-            else if(byte1 == 0x1B && !player->downActive){
+            else if(byte1 == 0x1B){
                 player->speedY = regSpeed;
-                player->downActive = 1;
-
-                
             }
             //x-movement
-            else if(byte1 == 0x23 && !player->rightActive){
+            else if(byte1 == 0x23){
                 player->speedX = regSpeed;
-                player->rightActive = 1;
-
-                
             }
-            else if(byte1 == 0x1C && !player->leftActive){
-                player->speedX = -regSpeed;
-                player->leftActive = 1;
-                
+            else if(byte1 == 0x1C){
+                player->speedX = -regSpeed;   
             }
         }
 
