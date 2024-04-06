@@ -26,3 +26,29 @@ This project is a simple head soccer game implemented in Assembly C. It aims to 
 
    ```bash
    git clone https://github.com/yourusername/head-soccer-assembly-c.git
+
+
+### List of Tasks
+a)Fix Direction of character (done)
+->Replace All magic numbers with defined numbers (done)
+
+b) Create Jump Logic (done)
+
+c) need to create gravity
+
+Ball Collision Logic
+1. Just Set the structs as globals and check as needed
+2. Store the sizes of the images in structs
+3. 
+
+d) Character Kick
+
+e) Update the background
+
+f) Goal Post Boundaries
+
+g) Start page
+
+h) Timer
+
+i) Sound the 
