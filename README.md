@@ -34,11 +34,11 @@ a)Fix Direction of character (done)
 
 b) Create Jump Logic (done)
 
-c) need to create gravity
+c) need to create gravity (done)
 
 Ball Collision Logic
-1. Just Set the structs as globals and check as needed
-2. Store the sizes of the images in structs
+1. Just Set the structs as globals and check as needed (done)
+2. Store the sizes of the images in structs (stored as the macro definitions search "Declarations" in file)
 3. 
 
 d) Character Kick
