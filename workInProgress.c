@@ -14630,10 +14630,10 @@ const unsigned short  gameOverPic [76800] = {
 #include <stdlib.h>
 
 
-///////////////////////////////Function Declarations:
+/////////////////////////////////////////////////////////////////////Function Declarations:
 volatile int pixel_buffer_start; // global variable
 
-//Drawing Declarations
+////////////////////////////////////////Drawing Declarations
 void draw_box(int x, int y, int short line_color);
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
@@ -14650,15 +14650,21 @@ void HEXdisplay(unsigned int value) ;
 
 
 
-
 #define groundY 210
+#define screenLeft 0
+#define screenRight 319
+#define screenUp 0
+#define screenDown 239
+#define crossBar 160
 
-//Character Declarations
+///////////////////////////////////////Character Declarations
 //#define charCenterX 20
-#define charCenterY 170
+#define groundedCharacterY 170
 #define characterLengthY 40
 #define characterLengthX 40
 #define jumpHeight 60
+#define leftCharacterX 20
+#define rightCharacterX 300
 
 typedef struct{
     int x;
@@ -14687,8 +14693,10 @@ void applyDash(Character *player);
 
 
 
-//Ball Declarations
+///////////////////////////////Ball Declarations
 #define ballDiameter 10
+#define ballStartx 160
+#define ballStarty 200 // groundY - ballDiameter;
 
 typedef struct{
     int x;
@@ -14699,19 +14707,16 @@ typedef struct{
     int prev1Y;
     int prev2X;
     int prev2Y;
+    int leftGoals;
+    int rightGoals;
 } Ball;
 
-
-//Timer Global Variable
-
-unsigned int TimeCycle = 0 ;
-unsigned int cTime = 0 ;
 
 void drawFootball(Ball *ball, Character *player1, Character *player2);
 void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2);
 void playerMoveBall(Ball *ball, Character *player1);
 void applyBallSpeed(Ball *ball, Character *player1, Character *player2);
-void ballWallCollision(Ball *ball);
+void ballWallCollision(Ball *ball, Character* player1, Character* player2);
 void applyBallDrag(Ball *ball);
 int isPlayerHittingBall(Ball *ball, Character *player);
 void ballCrossingPlayer(Ball *ball, Character *player);
@@ -14719,10 +14724,22 @@ void ballCrossingPlayer(Ball *ball, Character *player);
 void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed);
 void kickBall(Ball *ball);
 
-void setupTimer () ;
-void setupTimer2 () ;
-void isIt90secs () ;
-void gameOverScreen() ;
+
+////////////////////Game Management Declarations
+void resetPlay(Ball *ball, Character* player1, Character* player2);
+void updateLedScore(Ball *ball);
+
+
+
+////////////////Timer Global Variable
+
+unsigned int TimeCycle = 0 ;
+unsigned int cTime = 0 ;
+////////////////////Timer Functions
+void setupTimer();
+void setupTimer2();
+void isIt90secs();
+void gameOverScreen();
 
 short int rainbowColors[] = {
     0xFFFF, // White
@@ -14776,7 +14793,7 @@ void audio_playback_mono(int *samples, int n) {
       ;
     audiop->ldata = samples[i];
     audiop->rdata = samples[i];
-	  *LED = i;
+	  //*LED = i;
   }
 }
 
@@ -14874,7 +14891,7 @@ void drawCharacterL(Character *player){
 void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY){
     
     if(*shiftx < 0 ) *shiftx = 0; //Left Border
-    if(*shiftx > 319 - sizeX) *shiftx = 319 - sizeX; //Right Border
+    if(*shiftx > screenRight - sizeX) *shiftx = screenRight - sizeX; //Right Border
 
     if(*shifty < 0 ) *shifty = 0; //Top Border
     if(*shifty > groundY - sizeY) *shifty = groundY - sizeY; //Bottom Border
@@ -14929,7 +14946,7 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
     applyBallDrag(ball);
     
     applyBallSpeed(ball, player1, player2);
-    ballWallCollision(ball);
+    ballWallCollision(ball, player1, player2);
     
     for(int y = 0; y < 40; y++){
         for(int x = 0; x < 40; x++){
@@ -14941,29 +14958,83 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
     //drawPic(40, 40, football);
 }
 
-void ballWallCollision(Ball *ball){
-    if(ball->x < 0 ) 
-    {
-        ball->x = 0; //Left Border
-        ball->speedX = -ball->speedX;
-        //ball->x += ball->speedX;
-    }
-    else if(ball->x > 319 - ballDiameter) {
-        ball->x = 319 - ballDiameter;
-        ball->speedX = -ball->speedX;
-        //ball->x += ball->speedX;
-    } //Right Border
+void resetPlay(Ball *ball, Character* player1, Character* player2){
+    ball->x = ballStartx;
+    ball->y = ballStarty;
+    ball->speedX = 0;
+    ball->speedY = 0;
 
-    if(ball->y < 0 ) {
-        ball->y = 0; //Top Border
+    player1->x = leftCharacterX;
+    player1->y = groundedCharacterY;
+    /* player1->prev1X = leftCharacterX;
+    player1->prev1Y = groundedCharacterY;
+    player1->prev2X = leftCharacterX;
+    player1->prev2Y = groundedCharacterY; */
+    
+    player2->x = rightCharacterX;
+    player2->y = groundedCharacterY;
+    /* player2->prev1X = rightCharacterX;
+    player2->prev1Y = groundedCharacterY;
+    player2->prev2X = rightCharacterX;
+    player2->prev2Y = groundedCharacterY; */
+
+    updateLedScore(ball); //Show live score on leds
+}
+
+void updateLedScore(Ball *ball) {
+    // Assuming LED is a pointer to the LED display
+    int i;
+
+    // Clear all LEDs initially
+    *LED = 0;
+
+    // Turn on LEDs for right goals (up to 4 goals)
+    for (i = 0; i < ball->rightGoals && i < 4; i++) {
+        // Turn on the i-th LED from the right (LSB)
+        *LED |= (1 << i);
+    }
+
+    // Turn on LEDs for left goals (up to 4 goals)
+    for (i = 0; i < ball->leftGoals && i < 4; i++) {
+        // Turn on the i-th LED from the left (MSB)
+        *LED |= (1 << (7 - i)); // Assuming 8 LEDs in total (0 to 7)
+    }
+}
+
+void ballWallCollision(Ball *ball, Character* player1, Character* player2){
+    if(ball->x < screenLeft ){//Left Border
+
+        ball->x = screenLeft; 
+        ball->speedX = -ball->speedX;
+        //ball->x += ball->speedX;
+        if(ball->y < groundY && ball->y > crossBar){
+            ball->leftGoals++;
+            resetPlay(ball, player1, player2);
+        }
+
+    }
+    else if(ball->x > screenRight - ballDiameter) {//Right Border
+        ball->x = screenRight - ballDiameter;
+        ball->speedX = -ball->speedX;
+        //ball->x += ball->speedX;
+        if(ball->y < groundY && ball->y > crossBar){
+            ball->rightGoals++;
+            resetPlay(ball, player1, player2);
+        }
+
+
+    } 
+
+    if(ball->y < screenUp ) {//Top Border
+        ball->y = screenUp; 
         ball->speedY = -ball->speedY;
         //ball->y += ball->speedY;
     }
-    else if(ball->y > groundY - ballDiameter){ 
+    else if(ball->y > groundY - ballDiameter){ //Bottom Border
         ball->y = groundY - ballDiameter;
         ball->speedY = -ball->speedY;
         //ball->y += ball->speedY;
-    } //Bottom Border
+    } 
 
 }
 
@@ -15390,8 +15461,8 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
 void applyPlayerSpeed(Character *player){
     player->x += player->speedX;
     player->y += player->speedY;
-    if((player->y <= charCenterY - jumpHeight)){
-        player->y = charCenterY - jumpHeight;
+    if((player->y <= groundedCharacterY - jumpHeight)){
+        player->y = groundedCharacterY - jumpHeight;
     }
 }
 
@@ -15426,31 +15497,31 @@ int main(void) {
     
     Character Player1 = {0}; 
     //Initialize Character 1 Start Position at Goal Post
-    Player1.x = 20;
-    Player1.y = 170;
-    Player1.prev1X = 20;
-    Player1.prev1Y = 170;
-    Player1.prev2X = 20;
-    Player1.prev2Y = 170;
+    Player1.x = leftCharacterX;
+    Player1.y = groundedCharacterY;
+    Player1.prev1X = leftCharacterX;
+    Player1.prev1Y = groundedCharacterY;
+    Player1.prev2X = leftCharacterX;
+    Player1.prev2Y = groundedCharacterY;
 
 
     Character Player2 = {0}; 
     //Initialize Character 2 Start Position at Goal Post
-    Player2.x = 300;
-    Player2.y = 170;
-    Player2.prev1X = 300;
-    Player2.prev1Y = 170;
-    Player2.prev2X = 300;
-    Player2.prev2Y = 170;
+    Player2.x = rightCharacterX;
+    Player2.y = groundedCharacterY;
+    Player2.prev1X = rightCharacterX;
+    Player2.prev1Y = groundedCharacterY;
+    Player2.prev2X = rightCharacterX;
+    Player2.prev2Y = groundedCharacterY;
 
     //Initializing Ball on Ground
     Ball ball = {0}; 
-    ball.x = 160;
-    ball.y = groundY - ballDiameter;
-    ball.prev1X = 160;
-    ball.prev1Y = groundY - ballDiameter;
-    ball.prev2X = 160;
-    ball.prev2Y = groundY - ballDiameter;
+    ball.x = ballStartx;
+    ball.y = ballStarty;
+    ball.prev1X = ballStartx;
+    ball.prev1Y = ballStarty;
+    ball.prev2X = ballStartx;
+    ball.prev2Y = ballStarty;
     
 
 	
@@ -15477,7 +15548,7 @@ int main(void) {
 	{
         
 		//audio_playback_mono2(samples, &currSample, samples_n, 10600);
-		*(LED) = currSample;
+		//*(LED) = currSample;
 		
         ///////////////////////////////////////////////////////////Clearing the Screen
         //drawBg();
@@ -15508,14 +15579,14 @@ int main(void) {
         //Ball
         drawFootball(&ball, &Player1, &Player2);
         
-        draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground //Remove
+        draw_line(screenLeft, groundY, screenRight, groundY, 0x0); //Draw Black Line on the ground //Remove
         isIt90secs() ;
         displayTimer() ;
 
 
         if(TimeCycle>=3){
 
-            gameOverScreen();
+            //gameOverScreen();
         }
 		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer 
