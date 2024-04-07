@@ -14662,7 +14662,7 @@ void HEXdisplay(unsigned int value) ;
 #define groundedCharacterY 170
 #define characterLengthY 40
 #define characterLengthX 40
-#define jumpHeight 60
+#define jumpHeight 40
 #define leftCharacterX 20
 #define rightCharacterX 300
 
@@ -14680,6 +14680,7 @@ typedef struct{
     int prev1Y;
     int prev2X;
     int prev2Y;
+    int playerNum; // 1 for Player left, 2 for Player Right
 
 } Character;
 
@@ -14689,6 +14690,7 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
 void applyPlayerSpeed(Character *player);
 void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY);
 void applyDash(Character *player);
+
 
 
 
@@ -14722,13 +14724,13 @@ int isPlayerHittingBall(Ball *ball, Character *player);
 void ballCrossingPlayer(Ball *ball, Character *player);
 
 void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed);
-void kickBall(Ball *ball);
+void kickBall(Ball *ball, Character *player);
 
 
 ////////////////////Game Management Declarations
 void resetPlay(Ball *ball, Character* player1, Character* player2);
 void updateLedScore(Ball *ball);
-
+void cpuRight(Character *player, Ball *ball);
 
 
 ////////////////Timer Global Variable
@@ -15043,8 +15045,8 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
 
     //if both players hit ball
     if(isPlayerHittingBall(ball, player1) && isPlayerHittingBall(ball, player2)){ 
-        
         ball->speedX = 0;
+        
     }
 
     //if only player 1 hit ball
@@ -15092,9 +15094,22 @@ void playerMoveBall(Ball *ball, Character *player1){
 
 }
 
-void kickBall(Ball *ball){
+void kickBall(Ball *ball, Character *player){
+    /* int kickSpeed = 28;
+    if(player->playerNum == 1){
+        kickSpeed = +kickSpeed;
+    }
+    else if(player->playerNum == 2){
+        kickSpeed = -kickSpeed;
+    }
+    if(player->kick == 1){
+        ball->speedY = -40;
+        ball->speedX += player->speedX;
+    } */
+
     ball->speedY = -40;
     ball->speedX = +20;
+    
 }
 
 int isPlayerHittingBall(Ball *ball, Character *player){ 
@@ -15104,8 +15119,9 @@ int isPlayerHittingBall(Ball *ball, Character *player){
         //Check for right side of character
         if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
             if(player->kick == 1){
-                kickBall(ball);
+                kickBall(ball, player);
             }
+            //kickBall(ball, player);
             return 1;
         }
         
@@ -15121,8 +15137,9 @@ int isPlayerHittingBall(Ball *ball, Character *player){
         //Check for right side of character
         if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
             if(player->kick == 1){
-                kickBall(ball);
+                kickBall(ball, player);
             }
+            //kickBall(ball, player);
             return 1;
         }
         
@@ -15453,14 +15470,17 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
         
 
     }
-    applyDash(player); //Applying Dash speed if dashing conditions met
-    applyPlayerSpeed(player); //Applying Speed to Player
+    ///////////Moved to Main
+    //applyDash(player); //Applying Dash speed if dashing conditions met
+    //applyPlayerSpeed(player); //Applying Speed to Player
 }
 
 
 void applyPlayerSpeed(Character *player){
     player->x += player->speedX;
     player->y += player->speedY;
+
+    //Height limit
     if((player->y <= groundedCharacterY - jumpHeight)){
         player->y = groundedCharacterY - jumpHeight;
     }
@@ -15486,6 +15506,22 @@ void applyDash(Character *player){
         player->Dashed = 1;
     }
 }
+
+void cpuRight(Character *player, Ball *ball){
+    int regSpeed = 3;
+    int jump = 20;
+    if(ball->x + ballDiameter < player->x){
+        player->speedX = -regSpeed;
+        player->kick = 1;
+        player->speedY = 0;
+    }
+    else if(ball->x > player->x + characterLengthY){
+        player->speedX = regSpeed;
+        player->speedY = -jump;
+        player->kick = 0;
+    }
+
+}
   
 
 int main(void) {
@@ -15504,6 +15540,8 @@ int main(void) {
     Player1.prev2X = leftCharacterX;
     Player1.prev2Y = groundedCharacterY;
 
+    Player1.playerNum = 1;
+
 
     Character Player2 = {0}; 
     //Initialize Character 2 Start Position at Goal Post
@@ -15513,6 +15551,9 @@ int main(void) {
     Player2.prev1Y = groundedCharacterY;
     Player2.prev2X = rightCharacterX;
     Player2.prev2Y = groundedCharacterY;
+
+    Player1.playerNum = 2;
+    
 
     //Initializing Ball on Ground
     Ball ball = {0}; 
@@ -15567,7 +15608,17 @@ int main(void) {
 
         //Input
         playerInput(0, &Player1, &Player_1_byte1, &Player_1_byte2, 0x1D, 0x1B, 0x23, 0x1C);
-        playerInput(1, &Player2, &Player_2_byte1, &Player_2_byte2, 0x43, 0x42, 0x4B, 0x3B);
+        //playerInput(1, &Player2, &Player_2_byte1, &Player_2_byte2, 0x43, 0x42, 0x4B, 0x3B);
+        cpuRight(&Player2, &ball);
+
+        //Applying Player Speeds
+        applyDash(&Player1); //Applying Dash speed if dashing conditions met
+        applyPlayerSpeed(&Player1); //Applying Speed to Player
+
+        applyDash(&Player2); //Applying Dash speed if dashing conditions met
+        applyPlayerSpeed(&Player2); //Applying Speed to Player
+
+
 
         //Player1
 		drawCharacterL(&Player1); //draws the character
@@ -15580,8 +15631,8 @@ int main(void) {
         drawFootball(&ball, &Player1, &Player2);
         
         draw_line(screenLeft, groundY, screenRight, groundY, 0x0); //Draw Black Line on the ground //Remove
-        isIt90secs() ;
-        displayTimer() ;
+        isIt90secs();
+        displayTimer();
 
 
         if(TimeCycle>=3){
