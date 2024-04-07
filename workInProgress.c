@@ -14879,7 +14879,7 @@ void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed){
     } */
     
     /* int relativeGround = groundY - height;
-    if(*shifty < relativeGround || *speedY < 0){ //update: if doesn't work gotta check if speedY < 0 as well
+    if(*shifty < relativeGround || *speedY < 0){ 
         int scaler = 0;
         if(*shifty < relativeGround){
             scaler = *speedY/2;
@@ -14887,7 +14887,7 @@ void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed){
         }
         else{
             *shifty = relativeGround;
-            *speedY = 0; //update: we should let the ball do a bounce to though
+            *speedY = 0;
         }
 
     } */
@@ -15046,6 +15046,7 @@ int isPlayerHittingBall(Ball *ball, Character *player){
         if((player->x >= ball->x && player->x <= ball->x + ballDiameter)){
             return 1;
         }
+        ball->speedY = -ball->speedY;
 
     }
 
@@ -15065,24 +15066,6 @@ void applyBallDrag(Ball *ball){
         ball->speedX = 0;
     }
 
-    /* if(ball->speedY > 0){
-        ball->speedY -= drag;
-    }
-    else if(ball->speedY < 0){
-        ball->speedY += drag;
-    }
-    else if(ball->speedY <= drag && ball->speedY >= -drag){ //update: fix this
-        ball->speedY = 0;
-        ball->y = groundY;
-    } */
-
-    /* if(ball->y + ballDiameter < groundY){
-        ball->speedY += drag;
-    }
-    if(ball->y >= groundY - ballDiameter){
-        ball->speedY = 0;
-        ball->y = 0;
-    } */
 }
 
 void applyBallSpeed(Ball *ball, Character *player1, Character *player2){
@@ -15351,7 +15334,7 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
             else if(*byte1 == right){
                 player->speedX = 0;
 
-                player->rightDashCounter++;
+                //player->rightDashCounter++; turned off
                 player->leftDashCounter = 0; //Reset Left Dash
 
             }
@@ -15359,7 +15342,7 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
                 player->speedX = 0;
                 
                 player->rightDashCounter = 0; //Reseting Right Dash
-                player->leftDashCounter++; //Proccing Left Dash Counter
+                //player->leftDashCounter++; //Proccing Left Dash Counter
 
             }
         }
@@ -15388,8 +15371,6 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
     }
     applyDash(player); //Applying Dash speed if dashing conditions met
     applyPlayerSpeed(player); //Applying Speed to Player
-
-    //Update: put gravityEffect here
 }
 
 
