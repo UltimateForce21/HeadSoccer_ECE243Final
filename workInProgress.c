@@ -15773,8 +15773,24 @@ char seg7[] = {
 };   
 
  void HEXdisplay(unsigned int value) {
-	hex03p->DR = seg7[value & 0xF] | seg7[value >> 4 & 0xF] << 8 | 
-			seg7[value >> 8] << 16;
+	//157
+    /* 
+    num[0] = 7;
+    num[1] = 5;
+    num[2] = 1;
+     */
+    int num[3] = {0};
+    int digit = 0;
+
+    while(value > 0){
+        num[digit] = value % 10;
+        value = value / 10;
+        digit++;
+    }   
+
+    
+    hex03p->DR = seg7[num[0]] | seg7[num[1]] << 8 | 
+			seg7[num[2]] << 16;
 }
 
 void displayTimer () {  
