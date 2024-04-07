@@ -14706,7 +14706,8 @@ void applyBallDrag(Ball *ball);
 int isPlayerHittingBall(Ball *ball, Character *player);
 void ballCrossingPlayer(Ball *ball, Character *player);
 
-void gravityEffect(int *shifty, int height);
+void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed);
+void kickBall(Ball *ball);
 
 
 
@@ -14811,6 +14812,7 @@ void partialDrawBg(int startX, int startY, int lengthX, int lengthY){
 //Draws character facing right
 void drawCharacterR(Character *player){
     wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
+    gravityEffect(&(player->y), &(player->speedY), characterLengthY, 10);
 
     //Setting Up prev location info for double buffer erase
     player->prev2X = player->prev1X;
@@ -14827,13 +14829,14 @@ void drawCharacterR(Character *player){
             if(c1[index] != TRANSPARENCY_FOOTBALL) plot_pixel(player->x + x, player->y + y, c1[index]);
         }
     }
-    gravityEffect(&(player->y), characterLengthY);
+    
     //drawPic(100, 100, c1);
 }
 
 //Draws character facing right
 void drawCharacterL(Character *player){
     wallCollision(&(player->x), &(player->y), characterLengthX, characterLengthY);
+    gravityEffect(&(player->y), &(player->speedY), characterLengthY, 10);
     
     //Setting Up prev location info for double buffer erase
     player->prev2X = player->prev1X;
@@ -14850,7 +14853,7 @@ void drawCharacterL(Character *player){
             if(c1[index] != TRANSPARENCY_FOOTBALL) plot_pixel(player->x + x, player->y + y, c1[index]);
         }
     }
-    gravityEffect(&(player->y), characterLengthY);
+    
     //drawPic(100, 100, c1);
 }
 
@@ -14864,7 +14867,7 @@ void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY){
     if(*shifty > groundY - sizeY) *shifty = groundY - sizeY; //Bottom Border
 }
 
-void gravityEffect(int *shifty, int height){
+void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed){
     //The division is messing up with redraw pixels as we sometimes mis round where character reall is
     /* int maxDropSpeed = 160;
     int relativeGround = groundY - height;
@@ -14874,15 +14877,27 @@ void gravityEffect(int *shifty, int height){
             *shifty = relativeGround;
         }
     } */
-
-    int relativeGround = groundY - height;
-    if(*shifty < relativeGround){
-        *shifty += 10;
-        if(*shifty > relativeGround){
+    
+    /* int relativeGround = groundY - height;
+    if(*shifty < relativeGround || *speedY < 0){ //update: if doesn't work gotta check if speedY < 0 as well
+        int scaler = 0;
+        if(*shifty < relativeGround){
+            scaler = *speedY/2;
+            *speedY += gravitySpeed + scaler;
+        }
+        else{
             *shifty = relativeGround;
+            *speedY = 0; //update: we should let the ball do a bounce to though
         }
 
+    } */
+    int relativeGround = groundY - height;
+    *speedY = 2;
+    if(*shifty >= relativeGround){
+        *speedY = 0;
+
     }
+
 }
 
 
@@ -14896,9 +14911,10 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
     ball->prev2X = ball->prev1X;
     ball->prev2Y = ball->prev1Y;
 
-
+    gravityEffect(&(ball->y), &(ball->speedY), ballDiameter, 2);
     applyBall_CharacterCollision(ball, player1, player2);
-    //TODO: 
+    applyBallDrag(ball);
+    
     applyBallSpeed(ball, player1, player2);
     ballWallCollision(ball);
     
@@ -14908,7 +14924,7 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
             if(football[index] != TRANSPARENCY_FOOTBALL) plot_pixel(ball->x + x, ball->y + y, football[index]);
         }
     }
-    applyBallDrag(ball);
+    
     //drawPic(40, 40, football);
 }
 
@@ -14917,23 +14933,23 @@ void ballWallCollision(Ball *ball){
     {
         ball->x = 0; //Left Border
         ball->speedX = -ball->speedX;
-        ball->x += ball->speedX;
+        //ball->x += ball->speedX;
     }
     else if(ball->x > 319 - ballDiameter) {
         ball->x = 319 - ballDiameter;
         ball->speedX = -ball->speedX;
-        ball->x += ball->speedX;
+        //ball->x += ball->speedX;
     } //Right Border
 
     if(ball->y < 0 ) {
         ball->y = 0; //Top Border
         ball->speedY = -ball->speedY;
-        ball->y += ball->speedY;
+        //ball->y += ball->speedY;
     }
     else if(ball->y > groundY - ballDiameter){ 
         ball->y = groundY - ballDiameter;
         ball->speedY = -ball->speedY;
-        ball->y += ball->speedY;
+        //ball->y += ball->speedY;
     } //Bottom Border
 
 }
@@ -14945,12 +14961,12 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
     if(isPlayerHittingBall(ball, player1) && isPlayerHittingBall(ball, player2)){ 
         
         ball->speedX = 0;
-        ball->speedY = 0;
     }
 
     //if only player 1 hit ball
     else if(isPlayerHittingBall(ball, player1)){ 
         playerMoveBall(ball, player1);
+         
     }
 
     //if only player 2 hit ball
@@ -14992,12 +15008,20 @@ void playerMoveBall(Ball *ball, Character *player1){
 
 }
 
+void kickBall(Ball *ball){
+    ball->speedY = -40;
+    ball->speedX = +20;
+}
+
 int isPlayerHittingBall(Ball *ball, Character *player){ 
     //Check for bottom of character
     if(player->y + characterLengthY >= ball->y && player->y + characterLengthY <= ball->y + ballDiameter){
         
         //Check for right side of character
         if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
+            if(player->kick == 1){
+                kickBall(ball);
+            }
             return 1;
         }
         
@@ -15012,6 +15036,9 @@ int isPlayerHittingBall(Ball *ball, Character *player){
         
         //Check for right side of character
         if(player->x + characterLengthX >= ball->x && player->x + characterLengthX <= ball->x + ballDiameter){
+            if(player->kick == 1){
+                kickBall(ball);
+            }
             return 1;
         }
         
@@ -15037,6 +15064,25 @@ void applyBallDrag(Ball *ball){
     else if(ball->speedX <= drag && ball->speedX >= -drag){
         ball->speedX = 0;
     }
+
+    /* if(ball->speedY > 0){
+        ball->speedY -= drag;
+    }
+    else if(ball->speedY < 0){
+        ball->speedY += drag;
+    }
+    else if(ball->speedY <= drag && ball->speedY >= -drag){ //update: fix this
+        ball->speedY = 0;
+        ball->y = groundY;
+    } */
+
+    /* if(ball->y + ballDiameter < groundY){
+        ball->speedY += drag;
+    }
+    if(ball->y >= groundY - ballDiameter){
+        ball->speedY = 0;
+        ball->y = 0;
+    } */
 }
 
 void applyBallSpeed(Ball *ball, Character *player1, Character *player2){
@@ -15293,6 +15339,7 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
             }
             else if(*byte1 == down){
                 player->speedY = 0;
+                player->kick = 0;
                 
                 
                 //Reseting Dashes
@@ -15325,6 +15372,7 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
             }
             else if(*byte1 == down){
                 player->speedY = regSpeed;
+                player->kick = 1;
             }
             //x-movement
             else if(*byte1 == right){
@@ -15340,6 +15388,8 @@ void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned
     }
     applyDash(player); //Applying Dash speed if dashing conditions met
     applyPlayerSpeed(player); //Applying Speed to Player
+
+    //Update: put gravityEffect here
 }
 
 
