@@ -14645,6 +14645,10 @@ void drawPic(int x_d, int y_d, const unsigned short *picArray);
 void drawBg();
 void partialDrawBg(int startX, int startY, int lengthX, int lengthY);
 void drawTransparentPic(int x_d, int y_d, unsigned short *picArray);
+void displayTimer () ;
+void HEXdisplay(unsigned int value) ;
+
+
 
 
 #define groundY 210
@@ -14697,6 +14701,12 @@ typedef struct{
     int prev2Y;
 } Ball;
 
+
+//Timer Global Variable
+
+unsigned int TimeCycle = 0 ;
+unsigned int cTime = 0 ;
+
 void drawFootball(Ball *ball, Character *player1, Character *player2);
 void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *player2);
 void playerMoveBall(Ball *ball, Character *player1);
@@ -14709,7 +14719,10 @@ void ballCrossingPlayer(Ball *ball, Character *player);
 void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed);
 void kickBall(Ball *ball);
 
-
+void setupTimer () ;
+void setupTimer2 () ;
+void isIt90secs () ;
+void gameOverScreen() ;
 
 short int rainbowColors[] = {
     0xFFFF, // White
@@ -15402,11 +15415,11 @@ void applyDash(Character *player){
         player->Dashed = 1;
     }
 }
-
-
+  
 
 int main(void) {
   	//audio_playback_mono(samples, samples_n);
+    HEXdisplay(0) ;
 	audio_setup();
     int currSample = 0;
 
@@ -15458,6 +15471,7 @@ int main(void) {
 	//clear_screen(); // pixel_buffer_start points to the pixel buffer
     drawBg();
     setupTimer();
+    setupTimer2();
 
 	while (1)
 	{
@@ -15495,9 +15509,12 @@ int main(void) {
         drawFootball(&ball, &Player1, &Player2);
         
         draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground //Remove
-        
+        isIt90secs() ;
+        displayTimer() ;
 
-        if(isIt90secs()){
+
+        if(TimeCycle>=3){
+
             gameOverScreen();
         }
 		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
@@ -15544,6 +15561,7 @@ struct timer_t {
 };
 
 struct timer_t *const timer = ((struct timer_t *)0xff202000);
+struct timer_t *const timer2 = ((struct timer_t *)0xff202020);
 #define TIMER_SEC 100000000 // 1 second in Timer ticks
 #define PLAY_TIME 30 // 90 seconds of play time
 unsigned int gameOver = 0;
@@ -15568,18 +15586,26 @@ void setupTimer () {
     timer->status = 0x0;                       // reset the timer
     timer->periodlo = howlong & 0x0000FFFF;        // set the lower 16 bits of the counter
     timer->periodhi = (howlong & 0xFFFF0000) >> 16;            // set the higher 16 bits of the counter
-    timer->control = 0x4;                      // start the timer
+    timer->control = 0x6;                      // start the timer
 
 }
 
-int isIt90secs () {
+void setupTimer2 () {
+        unsigned int value = TIMER_SEC ;
+         timer2->control = 0x8;                      // stop the timer
+     timer2->status = 0x0;                       // reset the timer
+    timer2->periodlo = value & 0x0000FFFF;        // set the lower 16 bits of the counter
+    timer2->periodhi = (value & 0xFFFF0000) >> 16;            // set the higher 16 bits of the counter
+    timer2->control = 0x6; 
+}
+
+void isIt90secs () {
    
     if (timer->status & 0x1) {
-        gameOver = 1 ;
+       
+        TimeCycle ++ ;
+        timer->status = 0; // reset the timer flag
     }      // wait for timer to expire
-   
-
-    return gameOver;
   
 }
 
@@ -15594,4 +15620,52 @@ void drawStartPage () {
    
         }
 
+        struct PIT_T
+        {
+            volatile unsigned int DR ;
+            volatile unsigned int DIR ;
+            volatile unsigned int MASK ;
+            volatile unsigned int EDGE ;
+           
+        };
 
+        struct PIT_T *const hex03p = ((struct PIT_T *)0xff200020);
+
+char seg7[] = {
+    0x3f, // 0
+    0x06, // 1
+    0x5b, // 2
+    0x4f, // 3
+    0x66, // 4
+    0x6d, // 5
+    0x7d, // 6
+    0x07, // 7
+    0x7f, // 8
+    0x67, // 9
+    0x77, // A
+    0x7c, // B
+    0x39, // C
+    0x5e, // D
+    0x79, // E
+    0x71  // F
+};   
+
+ void HEXdisplay(unsigned int value) {
+	hex03p->DR = seg7[value & 0xF] | seg7[value >> 4 & 0xF] << 8 | 
+			seg7[value >> 8] << 16;
+}
+
+void displayTimer () {  
+    if ((timer2->status & 0x1) && (TimeCycle < 3)) {
+       
+        cTime ++ ;
+        
+        HEXdisplay(cTime);
+        timer2->status = 0; // reset the timer flag
+
+
+    }      
+  
+
+
+    }
