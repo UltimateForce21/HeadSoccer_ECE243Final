@@ -36,23 +36,25 @@ b) Create Jump Logic (done)
 
 c) need to create gravity (done)
 
-Ball Collision Logic
+Ball Collision Logic (somewhat works)
 1. Just Set the structs as globals and check as needed (done)
 2. Store the sizes of the images in structs (stored as the macro definitions search "Declarations" in file)
 3. 
 
- ) CharacterCollision
 
- ) Add Player 2
+ ) Add Player 2 (done)
 
-d) Character Kick
+d) Character Kick (done)
 
-e) Update the background
+e) Update the background (extra)
 
-f) Goal Post Boundaries
+f) Goal Post Boundaries (done)
 
-g) Start page
+g) Start page 
+   - option to select pvp vs cpu
 
-h) Timer
+h) Timer (done)
 
-i) Sound the 
+i) we need to wrap everything in the current main loop in a separate function, so we can if we want to again after end game, we should wrap 
+
+f) goal scene 

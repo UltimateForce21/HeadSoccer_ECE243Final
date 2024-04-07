@@ -14709,8 +14709,8 @@ typedef struct{
     int prev1Y;
     int prev2X;
     int prev2Y;
-    int leftGoals;
-    int rightGoals;
+    int leftGoals;  //Number of goals for player on the left
+    int rightGoals; //Number of goals for player on the right
 } Ball;
 
 
