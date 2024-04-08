@@ -14647,6 +14647,7 @@ void partialDrawBg(int startX, int startY, int lengthX, int lengthY);
 void drawTransparentPic(int x_d, int y_d, unsigned short *picArray);
 void displayTimer () ;
 void HEXdisplay(unsigned int value) ;
+void DecimalDisplay (unsigned int value) ;
 
 
 
@@ -15764,12 +15765,12 @@ char seg7[] = {
     0x07, // 7
     0x7f, // 8
     0x67, // 9
-    0x77, // A
-    0x7c, // B
-    0x39, // C
-    0x5e, // D
-    0x79, // E
-    0x71  // F
+    // 0x77, // A
+    // 0x7c, // B
+    // 0x39, // C
+    // 0x5e, // D
+    // 0x79, // E
+    // 0x71  // F
 };   
 
  void HEXdisplay(unsigned int value) {
@@ -15793,12 +15794,15 @@ char seg7[] = {
 			seg7[num[2]] << 16;
 }
 
+
+
 void displayTimer () {  
     if ((timer2->status & 0x1) && (TimeCycle < 3)) {
        
         cTime ++ ;
         
-        HEXdisplay(cTime);
+         HEXdisplay(cTime);
+   
         timer2->status = 0; // reset the timer flag
 
 
@@ -15807,3 +15811,10 @@ void displayTimer () {
 
 
     }
+
+    
+
+
+
+
+
