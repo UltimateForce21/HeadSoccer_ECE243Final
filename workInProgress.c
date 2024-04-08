@@ -19830,15 +19830,15 @@ void updateLedScore(Ball *ball) {
     *LED = 0;
 
     // Turn on LEDs for right goals (up to 4 goals)
-    for (i = 0; i < ball->rightGoals && i < 4; i++) {
+    for (i = 0; i < ball->leftGoals && i < 4; i++) {
         // Turn on the i-th LED from the right (LSB)
         *LED |= (1 << i);
     }
 
     // Turn on LEDs for left goals (up to 4 goals)
-    for (i = 0; i < ball->leftGoals && i < 4; i++) {
+    for (i = 0; i < ball->rightGoals && i < 4; i++) {
         // Turn on the i-th LED from the left (MSB)
-        *LED |= (1 << (7 - i)); // Assuming 8 LEDs in total (0 to 7)
+        *LED |= (1 << (9 - i)); // Assuming 8 LEDs in total (0 to 7)
     }
 }
 
