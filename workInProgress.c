@@ -19546,6 +19546,10 @@ void resetPlay(Ball *ball, Character* player1, Character* player2);
 void updateLedScore(Ball *ball);
 void cpuRight(Character *player, Ball *ball);
 
+void startPage () ;
+void endPage () ;
+void liveGame () ;
+
 
 ////////////////Timer Global Variable
 
@@ -19556,6 +19560,11 @@ void setupTimer();
 void setupTimer2();
 void isIt90secs();
 void gameOverScreen();
+
+//Game State Global Variables
+
+unsigned int gameState = 0; // 0 -> start page , 1 -> live game, 2 -> end-game and options
+
 
 short int rainbowColors[] = {
     0xFFFF, // White
@@ -19580,6 +19589,15 @@ volatile int *LED = (volatile int *)0xFF200000;
 volatile int *KEYs = (volatile int *)0xFF200050;
 volatile int *ps2_ctrl_ptr0 = (int *)0xFF200100;
 volatile int *ps2_ctrl_ptr1 = (int *)0xFF200108;
+
+// {
+// case /* constant-expression */:
+//     /* code */
+//     break;
+
+// default:
+//     break;
+// }
 
 
 
@@ -20370,7 +20388,359 @@ void cpuRight(Character *player, Ball *ball){
   
 
 int main(void) {
-  	//audio_playback_mono(samples, samples_n);
+  	// //audio_playback_mono(samples, samples_n);
+    // HEXdisplay(0) ;
+	// audio_setup();
+    // int currSample = 0;
+
+    
+    // Character Player1 = {0}; 
+    // //Initialize Character 1 Start Position at Goal Post
+    // Player1.x = leftCharacterX;
+    // Player1.y = groundedCharacterY;
+    // Player1.prev1X = leftCharacterX;
+    // Player1.prev1Y = groundedCharacterY;
+    // Player1.prev2X = leftCharacterX;
+    // Player1.prev2Y = groundedCharacterY;
+
+    // Player1.playerNum = 1;
+
+
+    // Character Player2 = {0}; 
+    // //Initialize Character 2 Start Position at Goal Post
+    // Player2.x = rightCharacterX;
+    // Player2.y = groundedCharacterY;
+    // Player2.prev1X = rightCharacterX;
+    // Player2.prev1Y = groundedCharacterY;
+    // Player2.prev2X = rightCharacterX;
+    // Player2.prev2Y = groundedCharacterY;
+
+    // Player1.playerNum = 2;
+    
+
+    // //Initializing Ball on Ground
+    // Ball ball = {0}; 
+    // ball.x = ballStartx;
+    // ball.y = ballStarty;
+    // ball.prev1X = ballStartx;
+    // ball.prev1Y = ballStarty;
+    // ball.prev2X = ballStartx;
+    // ball.prev2Y = ballStarty;
+    
+
+	
+	
+    // /////////////////////Vsync Setup
+    // volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+	// /* set front pixel buffer to Buffer 1 */
+	// *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // first store the address in the  back buffer
+	// /* now, swap the front/back buffers, to set the front buffer location */
+	// wait_for_vsync();
+	// /* initialize a pointer to the pixel buffer, used by drawing functions */
+	// pixel_buffer_start = *pixel_ctrl_ptr;
+	// //clear_screen(); // pixel_buffer_start points to the pixel buffer
+    // drawBg();
+	// /* set back pixel buffer to Buffer 2 */
+	// *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+	// pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+	// //clear_screen(); // pixel_buffer_start points to the pixel buffer
+    // drawBg();
+    // setupTimer();
+    // setupTimer2();
+
+	// while (1)
+	// {
+        
+	// 	//audio_playback_mono2(samples, &currSample, samples_n, 10600);
+	// 	//*(LED) = currSample;
+		
+    //     ///////////////////////////////////////////////////////////Clearing the Screen
+    //     //drawBg();
+    //     //Player1
+    //     partialDrawBg(Player1.prev2X, Player1.prev2Y, characterLengthX, characterLengthY);
+    //     partialDrawBg(Player1.x, Player1.y, characterLengthX, characterLengthY);
+    //     //Player1
+    //     partialDrawBg(Player2.prev2X, Player2.prev2Y, characterLengthX, characterLengthY);
+    //     partialDrawBg(Player2.x, Player2.y, characterLengthX, characterLengthY);
+        
+    //     //Ball
+    //     partialDrawBg(ball.prev2X, ball.prev2Y, ballDiameter, ballDiameter);
+    //     partialDrawBg(ball.x, ball.y, ballDiameter, ballDiameter);
+        
+    //     //////////////////////////////////////////////////Drawing and Input
+
+    //     //Input
+    //     playerInput(0, &Player1, &Player_1_byte1, &Player_1_byte2, 0x1D, 0x1B, 0x23, 0x1C);
+    //     //playerInput(1, &Player2, &Player_2_byte1, &Player_2_byte2, 0x43, 0x42, 0x4B, 0x3B);
+    //     cpuRight(&Player2, &ball);
+
+    //     //Applying Player Speeds
+    //     applyDash(&Player1); //Applying Dash speed if dashing conditions met
+    //     applyPlayerSpeed(&Player1); //Applying Speed to Player
+
+    //     applyDash(&Player2); //Applying Dash speed if dashing conditions met
+    //     applyPlayerSpeed(&Player2); //Applying Speed to Player
+
+
+
+    //     //Player1
+	// 	drawCharacterL(&Player1); //draws the character
+
+    //     //Player1
+	// 	drawCharacterR(&Player2); //draws the character
+
+
+    //     //Ball
+    //     drawFootball(&ball, &Player1, &Player2);
+        
+    //     draw_line(screenLeft, groundY, screenRight, groundY, 0x0); //Draw Black Line on the ground //Remove
+    //     isIt90secs();
+    //     displayTimer();
+
+
+    //     if(TimeCycle>=3){
+
+    //         //gameOverScreen();
+    //     }
+	// 	wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+	// 	pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer 
+
+
+
+	// }
+    while(1) 
+    {
+    if(gameState == 0) 
+    startPage() ;
+    if(gameState == 1) 
+    liveGame() ;
+    if(gameState == 2)
+     endPage () ;
+    }
+
+  
+    return 0;
+	
+}
+
+
+void pushButtonMovement(int shiftx, int shifty){
+    if((*(KEYs) & 0b0001) == 0b0001){
+            *(KEYs + 3) = 0b0001;
+            shiftx += 5;
+        }
+        else if((*(KEYs) & 0b0010) == 0b0010){
+            *(KEYs + 3) = 0b0010;
+            shiftx -= 5;
+        }
+
+        if((*(KEYs) & 0b1000) == 0b1000){
+            *(KEYs + 3) = 0b1000;
+            shifty += 5;
+        }
+        else if((*(KEYs) & 0b0100) == 0b0100){
+            *(KEYs + 3) = 0b0100;
+            shifty -= 5;
+        }
+}
+
+
+//Timer Struct
+struct timer_t {
+    volatile unsigned int status;
+    volatile unsigned int control ;
+    volatile unsigned int periodlo;
+    volatile unsigned int periodhi;
+    volatile unsigned int snaplo;
+    volatile unsigned int snaphi;
+};
+
+struct timer_t *const timer = ((struct timer_t *)0xff202000);
+struct timer_t *const timer2 = ((struct timer_t *)0xff202020);
+#define TIMER_SEC 100000000 // 1 second in Timer ticks
+#define PLAY_TIME 30 // 90 seconds of play time
+unsigned int gameOver = 0;
+unsigned long score=0;
+
+void updateScore(){
+    score++;
+}
+
+
+/* Interrupt handler */
+void handle_irq() {
+    if (timer->status & 0x1) {
+        updateScore();
+        timer->status = 0x1; // reset the timer flag
+    }
+}   
+
+void setupTimer () {
+     unsigned int howlong = (TIMER_SEC)* PLAY_TIME ;
+    timer->control = 0x8;                      // stop the timer
+    timer->status = 0x0;                       // reset the timer
+    timer->periodlo = howlong & 0x0000FFFF;        // set the lower 16 bits of the counter
+    timer->periodhi = (howlong & 0xFFFF0000) >> 16;            // set the higher 16 bits of the counter
+    timer->control = 0x6;                      // start the timer
+
+}
+
+void setupTimer2 () {
+        unsigned int value = TIMER_SEC ;
+         timer2->control = 0x8;                      // stop the timer
+     timer2->status = 0x0;                       // reset the timer
+    timer2->periodlo = value & 0x0000FFFF;        // set the lower 16 bits of the counter
+    timer2->periodhi = (value & 0xFFFF0000) >> 16;            // set the higher 16 bits of the counter
+    timer2->control = 0x6; 
+}
+
+void isIt90secs () {
+   
+    if (timer->status & 0x1) {
+       
+        TimeCycle ++ ;
+        timer->status = 0; // reset the timer flag
+    }      // wait for timer to expire
+  
+}
+
+void gameOverScreen(){
+    drawPic(320, 240, gameOverPic);
+  
+    }
+void drawStartPage () {
+    drawPic(320, 240, StartPagePic);
+   
+        }
+
+        struct PIT_T
+        {
+            volatile unsigned int DR ;
+            volatile unsigned int DIR ;
+            volatile unsigned int MASK ;
+            volatile unsigned int EDGE ;
+           
+        };
+
+        struct PIT_T *const hex03p = ((struct PIT_T *)0xff200020);
+        struct PIT_T *const swp = ((struct PIT_T *)0xff200040);
+
+char seg7[] = {
+    0x3f, // 0
+    0x06, // 1
+    0x5b, // 2
+    0x4f, // 3
+    0x66, // 4
+    0x6d, // 5
+    0x7d, // 6
+    0x07, // 7
+    0x7f, // 8
+    0x67, // 9
+    // 0x77, // A
+    // 0x7c, // B
+    // 0x39, // C
+    // 0x5e, // D
+    // 0x79, // E
+    // 0x71  // F
+};   
+
+ void HEXdisplay(unsigned int value) {
+	//157
+    /* 
+    num[0] = 7;
+    num[1] = 5;
+    num[2] = 1;
+     */
+    int num[3] = {0};
+    int digit = 0;
+
+    while(value > 0){
+        num[digit] = value % 10;
+        value = value / 10;
+        digit++;
+    }   
+
+    
+    hex03p->DR = seg7[num[0]] | seg7[num[1]] << 8 | 
+			seg7[num[2]] << 16;
+}
+
+
+
+void displayTimer () {  
+    if ((timer2->status & 0x1) && (TimeCycle < 3)) {
+       
+        cTime ++ ;
+        
+         HEXdisplay(cTime);
+   
+        timer2->status = 0; // reset the timer flag
+
+
+    }      
+  
+
+
+    }
+
+
+    /* 
+    Big Picture Idea:
+    - Goal is to run everything in order of game in a bigger while loop then just drawing the game
+    - We will have a gameState variable 
+        - Example int gameState; (if gameState = 0 -> live game) (if gameState == 1 -> end game) if gameState == 2 -> Startoptions, etc
+        - in the bigger while loop we will check
+        example
+        while(1){
+            if(gameState = 0){
+                liveGame(); <- in here you will update gameState once game is over and return out of the function, make sure everything is sorted out before returning
+            }
+            
+            if(gameState == 1){
+                gameOverScreen(); <- draw screen on both frames
+                playGameOverAudio();
+                //update Game state here
+
+            }
+            if (gameState = 2){
+                showSelectOptions
+                
+            }
+        }
+     */
+
+
+
+
+
+void startPage () {
+    while(1) {
+        volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+        *(pixel_ctrl_ptr + 1) = (int) &Buffer1; 
+         wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+         
+       
+        pixel_buffer_start = *(pixel_ctrl_ptr); // new back buffer 
+        drawStartPage ();
+        
+
+         
+          *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+          pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+          drawStartPage ();
+    
+        
+        
+   
+    if((swp->DR == 0x1) && (gameState == 0)){
+        gameState = 1;
+        break ;
+    }
+    }
+}
+
+void liveGame () {
+    //audio_playback_mono(samples, samples_n);
     HEXdisplay(0) ;
 	audio_setup();
     int currSample = 0;
@@ -20483,7 +20853,8 @@ int main(void) {
 
         if(TimeCycle>=3){
 
-            //gameOverScreen();
+            gameState = 2 ;
+            break ;
         }
 		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer 
@@ -20492,174 +20863,27 @@ int main(void) {
 
 	}
   
-    return 0;
-	
-}
 
-
-void pushButtonMovement(int shiftx, int shifty){
-    if((*(KEYs) & 0b0001) == 0b0001){
-            *(KEYs + 3) = 0b0001;
-            shiftx += 5;
-        }
-        else if((*(KEYs) & 0b0010) == 0b0010){
-            *(KEYs + 3) = 0b0010;
-            shiftx -= 5;
-        }
-
-        if((*(KEYs) & 0b1000) == 0b1000){
-            *(KEYs + 3) = 0b1000;
-            shifty += 5;
-        }
-        else if((*(KEYs) & 0b0100) == 0b0100){
-            *(KEYs + 3) = 0b0100;
-            shifty -= 5;
-        }
-}
-
-
-//Timer Struct
-struct timer_t {
-    volatile unsigned int status;
-    volatile unsigned int control ;
-    volatile unsigned int periodlo;
-    volatile unsigned int periodhi;
-    volatile unsigned int snaplo;
-    volatile unsigned int snaphi;
-};
-
-struct timer_t *const timer = ((struct timer_t *)0xff202000);
-struct timer_t *const timer2 = ((struct timer_t *)0xff202020);
-#define TIMER_SEC 100000000 // 1 second in Timer ticks
-#define PLAY_TIME 30 // 90 seconds of play time
-unsigned int gameOver = 0;
-unsigned long score=0;
-
-void updateScore(){
-    score++;
-}
-
-
-/* Interrupt handler */
-void handle_irq() {
-    if (timer->status & 0x1) {
-        updateScore();
-        timer->status = 0x1; // reset the timer flag
-    }
-}   
-
-void setupTimer () {
-    unsigned int howlong = (TIMER_SEC)* PLAY_TIME ;
-    timer->control = 0x8;                      // stop the timer
-    timer->status = 0x0;                       // reset the timer
-    timer->periodlo = howlong & 0x0000FFFF;        // set the lower 16 bits of the counter
-    timer->periodhi = (howlong & 0xFFFF0000) >> 16;            // set the higher 16 bits of the counter
-    timer->control = 0x6;                      // start the timer
 
 }
 
-void setupTimer2 () {
-        unsigned int value = TIMER_SEC ;
-         timer2->control = 0x8;                      // stop the timer
-     timer2->status = 0x0;                       // reset the timer
-    timer2->periodlo = value & 0x0000FFFF;        // set the lower 16 bits of the counter
-    timer2->periodhi = (value & 0xFFFF0000) >> 16;            // set the higher 16 bits of the counter
-    timer2->control = 0x6; 
-}
+void endPage () {
 
-void isIt90secs () {
-   
-    if (timer->status & 0x1) {
-       
-        TimeCycle ++ ;
-        timer->status = 0; // reset the timer flag
-    }      // wait for timer to expire
-  
-}
+    while(1) {
+        volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+	/* set front pixel buffer to Buffer 1 */
+	   gameOverScreen();
+        wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer 
 
-void gameOverScreen(){
-    clear_screen();
-    drawPic(320, 240, gameOverPic);
-  
-    }
-void drawStartPage () {
-    clear_screen();
-    drawPic(320, 240, StartPagePic);
-   
-        }
-
-        struct PIT_T
-        {
-            volatile unsigned int DR ;
-            volatile unsigned int DIR ;
-            volatile unsigned int MASK ;
-            volatile unsigned int EDGE ;
-           
-        };
-
-        struct PIT_T *const hex03p = ((struct PIT_T *)0xff200020);
-
-char seg7[] = {
-    0x3f, // 0
-    0x06, // 1
-    0x5b, // 2
-    0x4f, // 3
-    0x66, // 4
-    0x6d, // 5
-    0x7d, // 6
-    0x07, // 7
-    0x7f, // 8
-    0x67, // 9
-    // 0x77, // A
-    // 0x7c, // B
-    // 0x39, // C
-    // 0x5e, // D
-    // 0x79, // E
-    // 0x71  // F
-};   
-
- void HEXdisplay(unsigned int value) {
-	//157
-    /* 
-    num[0] = 7;
-    num[1] = 5;
-    num[2] = 1;
-     */
-    int num[3] = {0};
-    int digit = 0;
-
-    while(value > 0){
-        num[digit] = value % 10;
-        value = value / 10;
-        digit++;
-    }   
-
+        gameOverScreen();
+        wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
     
-    hex03p->DR = seg7[num[0]] | seg7[num[1]] << 8 | 
-			seg7[num[2]] << 16;
-}
-
-
-
-void displayTimer () {  
-    if ((timer2->status & 0x1) && (TimeCycle < 3)) {
-       
-        cTime ++ ;
-        
-         HEXdisplay(cTime);
-   
-        timer2->status = 0; // reset the timer flag
-
-
-    }      
-  
-
-
+    if((swp->DR == 0x2) && (gameState == 2)){
+        gameState = 0;
+        break ;
+    }
     }
 
-    
-
-
-
-
-
+}
