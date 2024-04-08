@@ -63,3 +63,6 @@ f) goal scene (done)
 start menu -> allow to chose options
 win screen for player 1 and player 2
 
+
+complexity for ball speed
+
