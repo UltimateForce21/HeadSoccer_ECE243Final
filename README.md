@@ -1,6 +1,6 @@
 # Head Soccer Game in Assembly C
 
-![Gameplay Screenshot](screenshot.png)
+![Gameplay Screenshot](images/goalScene.png)
 
 ## Overview
 
