@@ -57,4 +57,9 @@ h) Timer (done)
 
 i) we need to wrap everything in the current main loop in a separate function, so we can if we want to again after end game, we should wrap 
 
-f) goal scene 
+f) goal scene (done)
+
+
+start menu -> allow to chose options
+win screen for player 1 and player 2
+
