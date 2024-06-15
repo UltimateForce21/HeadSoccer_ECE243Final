@@ -18,7 +18,7 @@ This project is a simple head soccer game implemented in Assembly C. It aims to 
 
 ### Prerequisites
 
-- **Assembler**: Make sure you have an assembler compatible with Assembly C installed on your system. We recommend [NASM](https://www.nasm.us/) for compatibility and ease of use.
+- **Assembler**:Run the code on the following nios II emulator https://cpulator.01xz.net/?sys=nios-de1soc&d_audio=.
 
 ### Installation
 
