@@ -14641,8 +14641,8 @@ volatile int pixel_buffer_start; // global variable
 void draw_box(int x, int y, int short line_color);
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
-void draw_line(int x0, int y0, int x1, int y1, int short color);
-void swap(int *a, int *b);
+void draw_line(int x0, int y0, int x1, int y1, int short color);  // Iftikher Zaman's section
+void swap(int *a, int *b); 
 int abs(int a);
 void wait_for_vsync();
 void drawPic(int x_d, int y_d, const unsigned short *picArray);
@@ -14871,6 +14871,7 @@ void wallCollision(int *shiftx, int *shifty, int sizeX, int sizeY){
     if(*shifty > groundY - sizeY) *shifty = groundY - sizeY; //Bottom Border
 }
 
+// DONE BY BOTH
 void gravityEffect(int *shifty, int *speedY, int height, int gravitySpeed){
     //The division is messing up with redraw pixels as we sometimes mis round where character reall is
     /* int maxDropSpeed = 160;
@@ -14931,7 +14932,7 @@ void drawFootball(Ball *ball, Character *player1, Character *player2){
     
     //drawPic(40, 40, football);
 }
-
+// doNE BY BOTH
 void ballWallCollision(Ball *ball){
     if(ball->x < 0 ) 
     {
@@ -14984,6 +14985,7 @@ void applyBall_CharacterCollision(Ball *ball, Character *player1, Character *pla
 }
 
 //what happens after ball is hit by individual player
+//done by both
 void playerMoveBall(Ball *ball, Character *player1){
     
     if(player1->speedX > 0){//Player Positive Movement
@@ -15271,7 +15273,7 @@ unsigned char Player_1_byte2 = 0;
 
 unsigned char Player_2_byte1 = 0;
 unsigned char Player_2_byte2 = 0; 
-
+// Done by Iftikher
 void playerInput(int keyboard, Character *player, unsigned char *byte1, unsigned char *byte2, unsigned char up, unsigned char down, unsigned char right, unsigned left){
     //Goal is to recognize player input and weather they are holding down the button or not
     //Variables to store the data read from the PS/2 input.
@@ -15500,7 +15502,7 @@ int main(void) {
         
         draw_line(0, 210, 319, 210, 0x0); //Draw Black Line on the ground //Remove
         
-
+             //Done by Iftikher section below
         if(isIt90secs()){
             gameOverScreen();
         }
@@ -15554,6 +15556,7 @@ int main(void) {
 	
 }
 
+// Done by Iftikher
 
 void pushButtonMovement(int shiftx, int shifty){
     if((*(KEYs) & 0b0001) == 0b0001){
@@ -15577,6 +15580,7 @@ void pushButtonMovement(int shiftx, int shifty){
 
 
 //Timer Struct
+//Done by Iftikher
 struct timer_t {
     volatile unsigned int status;
     volatile unsigned int control ;
