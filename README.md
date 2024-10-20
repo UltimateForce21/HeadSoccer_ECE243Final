@@ -6,6 +6,8 @@
 
 This project is a simple head soccer game implemented in Assembly C. It aims to provide an entertaining and interactive experience for players who enjoy classic arcade-style games. The game features intuitive controls and a challenging AI opponent, offering players an opportunity to test their skills in a fun and engaging environment.
 
+Click here to check out our demo: [https://www.youtube.com/watch?v=fR82OaLaD2o](https://www.youtube.com/watch?v=CnN2Cnvc1Ao)
+
 ## Features
 
 - **Player vs. AI Mode**: Compete against a computer-controlled opponent in exciting one-on-one matches.
